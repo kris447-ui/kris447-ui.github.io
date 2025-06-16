@@ -1,0 +1,5066 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabel Pengadaan</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* Table Container Styles */
+        .table-container {
+            position: relative;
+            max-height: 500px;
+            overflow: auto;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin: 15px 0;
+        }
+
+        /* Scrollbar Styling */
+        .table-container::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 6px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: #04AA6D;
+            border-radius: 6px;
+            border: 3px solid #f1f1f1;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #038d5b;
+        }
+
+        /* Table Styles */
+        #customers {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            background: white;
+            overflow: hidden;
+        }
+
+        #customers thead {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        #customers th {
+            background: linear-gradient(145deg, #04AA6D, #038d5b);
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        #customers td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #eef2f7;
+            font-size: 13px;
+            color: #2c3e50;
+            transition: all 0.3s ease;
+        }
+
+        /* Add horizontal scroll indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #f1f1f1;
+            z-index: 2;
+        }
+
+        .scroll-indicator::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: var(--scroll-width, 0%);
+            height: 100%;
+            background: #04AA6D;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        /* Table wrapper for horizontal scroll */
+        .table-wrapper {
+            position: relative;
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        /* Responsive table adjustments */
+        @media screen and (max-width: 1024px) {
+            .table-container {
+                max-height: 400px;
+            }
+
+            #customers th, #customers td {
+                min-width: 120px;
+            }
+
+            #customers td:first-child,
+            #customers th:first-child {
+                position: sticky;
+                left: 0;
+                background: inherit;
+                z-index: 2;
+            }
+
+            #customers th:first-child {
+                z-index: 3;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .table-container {
+                max-height: 350px;
+                margin: 8px 0;
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: #ffffff;
+            margin: 2% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .modal-content h2 {
+            color: #2c3e50;
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                margin: 10px;
+                padding: 15px;
+                width: calc(100% - 20px);
+            }
+        }
+
+                        /* Form Styles */
+
+
+
+        /* Tab Styles */
+        .tab {
+            display: flex;
+            cursor: pointer;
+            padding: 10px;
+            background-color: #04AA6D;
+            color: white;
+            border: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #04AA6D;
+            border-radius: 0 0 5px 5px;
+            background-color: #fefefe;
+        }
+        .active {
+            display: block;
+        }
+        .active-tab {
+            background-color: #038d5b; /* Darker shade for active tab */
+        }
+        /* Flexbox Styles for KP and KD forms */
+        .form-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .form-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #04AA6D;
+            outline: none;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 2px solid #04AA6D;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        .tab-container {
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+            border: none;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .tab.active-tab {
+            background-color: #04AA6D;
+            color: white;
+        }
+        /* Login Styles */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .login-form {
+            border: 3px solid #f1f1f1;
+            background-color: white;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .login-form input[type=text], .login-form input[type=password] {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .login-form button {
+            background-color: #04AA6D;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .login-form button:hover {
+            opacity: 0.8;
+        }
+
+        .imgcontainer {
+            text-align: center;
+            margin: 24px 0 12px 0;
+        }
+
+        img.avatar {
+            width: 40%;
+            border-radius: 50%;
+            max-width: 100px;
+        }
+
+        .container {
+            padding: 16px;
+        }
+
+        @media screen and (max-width: 300px) {
+            .cancelbtn {
+                width: 100%;
+            }
+        }
+        /* PDF Modal Styles */
+        .pdf-modal {
+            display: none;
+            position: fixed;
+            z-index: 2;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+        }
+        .pdf-content {
+            margin: auto;
+            display: block;
+            width: 90%;
+            height: 90%;
+            max-width: 1200px;
+            position: relative;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .pdf-close {
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            color: #fff;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .pdf-viewer {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        /* Print Styles */
+        @media print {
+            @page {
+                size: landscape;
+                margin: 1cm;
+            }
+            
+            body * {
+                visibility: hidden;
+            }
+            
+            #printArea, #printArea * {
+                visibility: visible;
+            }
+            
+            #printArea {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            
+            .no-print, .no-print * {
+                display: none !important;
+            }
+            
+            #customers {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+            }
+            
+            #customers th, #customers td {
+                border: 1px solid #000;
+                padding: 8px;
+                text-align: left;
+            }
+            
+            #customers th {
+                background-color: #f2f2f2 !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            button, .modal, .header-container button {
+                display: none !important;
+            }
+        }
+        
+        /* Print Preview Modal Styles */
+        .print-modal {
+            display: none;
+            position: fixed;
+            z-index: 3;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .print-modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+        }
+        
+        .print-options {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .print-option-group {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            background: white;
+        }
+        
+        .print-option-group h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .print-option-items {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .print-option-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .print-option-item input[type="radio"] {
+            margin: 0;
+        }
+        /* Editable Title Styles */
+        .editable-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .editable-title h1 {
+            margin: 0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .editable-title h1:hover {
+            background-color: #f0f0f0;
+        }
+        .editable-title input {
+            font-size: 2em;
+            font-weight: bold;
+            padding: 5px 10px;
+            border: 2px solid #04AA6D;
+            border-radius: 4px;
+            width: 100%;
+            margin: 0;
+        }
+        .edit-title-buttons {
+            display: none;
+            gap: 5px;
+        }
+        .edit-title-buttons.active {
+            display: flex;
+        }
+        .save-title-btn {
+            background-color: #04AA6D;
+            color: white;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .cancel-title-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        /* Simplified Modal Styles */
+        .modal-content {
+            background-color: #fff;
+            margin: 2% auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* Simplified Form Styles */
+        .flex-form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px;
+            background: #fff;
+        }
+        
+        .flex-form-group {
+            display: flex;
+            align-items: center;
+        }
+        
+        .flex-form-group label {
+            width: 120px;
+            margin-right: 10px;
+        }
+        
+        .flex-form-group input,
+        .flex-form-group select {
+            flex: 1;
+            padding: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .flex-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .flex-form-actions button {
+            padding: 5px 15px;
+        }
+        
+        /* Modal Content Adjustments */
+        .modal-content {
+            background: #fff;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        
+        .modal-content h2 {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        
+        .tab {
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            color: #666;
+            cursor: pointer;
+            font-weight: 500;
+            position: relative;
+        }
+        
+        .tab.active-tab {
+            color: #04AA6D;
+        }
+        
+        .tab.active-tab::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #04AA6D;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .action-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .save-btn {
+            background-color: #04AA6D;
+            color: white;
+        }
+        
+        .cancel-btn {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        /* Edit Modal Styles */
+        .edit-btn {
+            background-color: #ffc107;
+            color: #000;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .edit-btn:hover {
+            background-color: #e0a800;
+        }
+        /* Responsive Styles */
+        @media screen and (max-width: 1024px) {
+            .modal-content {
+                width: 95%;
+                margin: 20px auto;
+            }
+            
+            .header-container {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .header-container h1 {
+                font-size: 24px;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            #customers {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .action-buttons button {
+            width: 100%;
+                margin: 5px 0;
+            }
+            
+            .login-form {
+                width: 90%;
+                margin: 0 20px;
+            }
+            
+            .pdf-content {
+                width: 95%;
+                height: 80%;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            #customers td, #customers th {
+                padding: 6px;
+                font-size: 14px;
+            }
+            
+            .form-group {
+                margin-bottom: 10px;
+            }
+            
+            .form-group input {
+                padding: 8px;
+            }
+            
+            .tab {
+                padding: 6px 12px;
+                font-size: 14px;
+            }
+            
+            .modal-content {
+                padding: 15px;
+            }
+            
+            .header-container h1 {
+                font-size: 20px;
+            }
+            
+            button {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+            
+            td button {
+                padding: 4px 8px;
+                margin: 2px;
+                display: block;
+                width: 100%;
+            }
+            
+            .print-options label {
+                font-size: 14px;
+            }
+        }
+
+        /* Table Responsive Styles */
+        @media screen and (max-width: 640px) {
+            #customers thead {
+                display: none;
+            }
+            
+            #customers, #customers tbody, #customers tr, #customers td {
+                display: block;
+                width: 100%;
+            }
+            
+            #customers tr {
+                margin-bottom: 15px;
+                border: 1px solid #ddd;
+            }
+            
+            #customers td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+                border: none;
+                border-bottom: 1px solid #eee;
+            }
+            
+            #customers td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                width: 45%;
+                padding-left: 15px;
+                font-weight: bold;
+                text-align: left;
+            }
+            
+            #customers td:last-child {
+                border-bottom: 0;
+            }
+        }
+
+        /* Search and Button Responsive */
+        @media screen and (max-width: 640px) {
+            .search-print-container {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+            
+            #search {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .button-group {
+                display: flex;
+                gap: 5px;
+            }
+            
+            .button-group button {
+                flex: 1;
+            }
+        }
+
+        /* Flex Form Styles */
+        .flex-form-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;             /* Reduced from 10px */
+            padding: 8px;         /* Reduced from 10px */
+            background: #f8f9fa;
+            border-radius: 4px;   /* Reduced from 6px */
+            margin-top: 8px;      /* Reduced from 10px */
+        }
+
+        .flex-form-group {
+            flex: 1 1 calc(50% - 3px);  /* Reduced gap compensation */
+            min-width: 180px;           /* Reduced from 200px */
+            margin-bottom: 4px;         /* Added small margin bottom */
+        }
+
+        .flex-form-group label {
+            display: block;
+            margin-bottom: 2px;         /* Reduced from 4px */
+            color: #333;
+            font-weight: 500;
+            font-size: 12px;           /* Reduced from 13px */
+            line-height: 1.2;          /* Added compact line height */
+        }
+
+        .flex-form-group input,
+        .flex-form-group select {
+            width: 100%;
+            padding: 4px 6px;          /* Reduced from 6px 8px */
+            border: 1px solid #ddd;
+            border-radius: 3px;        /* Reduced from 4px */
+            transition: all 0.3s ease;
+            font-size: 12px;          /* Reduced from 13px */
+            line-height: 1.2;         /* Added compact line height */
+            height: 24px;             /* Added fixed height */
+        }
+
+        .flex-form-actions {
+            flex: 1 1 100%;
+            display: flex;
+            gap: 6px;                /* Reduced from 8px */
+            justify-content: flex-end;
+            margin-top: 8px;         /* Reduced from 10px */
+        }
+
+        .flex-form-actions button {
+            min-width: 80px;         /* Reduced from 100px */
+            padding: 4px 8px;        /* Reduced from 6px 12px */
+            font-size: 12px;         /* Reduced from 13px */
+            height: 24px;            /* Added fixed height */
+            line-height: 1;          /* Added compact line height */
+        }
+
+        .flex-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .flex-tab {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            color: #666;
+            cursor: pointer;
+            font-weight: 500;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .flex-tab.active-tab {
+            color: #04AA6D;
+        }
+
+        .flex-tab.active-tab::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #04AA6D;
+        }
+
+        .flex-tab:hover {
+            color: #038d5b;
+        }
+
+        @media (max-width: 768px) {
+            .flex-form-group {
+                flex: 1 1 100%;
+            }
+            
+            .flex-form-actions {
+                flex-direction: column;
+            }
+            
+            .flex-form-actions button {
+                width: 100%;
+            }
+        }
+
+        /* Pagination Styles */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* Data Type Counter Styles */
+        .data-type-counters {
+            display: flex;
+            gap: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .type-counter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .kp-counter {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .kd-counter {
+            background-color: #fbe9e7;
+            color: #d84315;
+        }
+
+        .counter-number {
+            font-weight: bold;
+        }
+
+        /* Update pagination container to include type counters */
+        .pagination-wrapper {
+            margin: 20px 0;
+        }
+
+        .pagination-info {
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .entries-info {
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .pagination-button {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .pagination-button:hover {
+            background: #f0f0f0;
+        }
+
+        .pagination-button:disabled {
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .items-per-page {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .items-per-page select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+
+        /* Import/Export Button Styles */
+        .export-btn, .import-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .export-btn:hover, .import-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .export-btn i, .import-btn i {
+            font-size: 16px;
+        }
+
+        /* PDF Button Styles */
+        .pdf-icon {
+            background-color: #dc3545;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            border: none;
+        }
+
+        .pdf-icon:hover {
+            background-color: #c82333;
+        }
+
+        .no-pdf {
+            color: #6c757d;
+            font-style: italic;
+            font-size: 13px;
+        }
+
+        /* Action Button Styles */
+        .action-icon {
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 3px;
+            transition: all 0.3s ease;
+            width: 35px;
+            height: 35px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-icon {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .edit-icon:hover {
+            background-color: #e0a800;
+        }
+
+        .delete-icon {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .delete-icon:hover {
+            background-color: #c82333;
+        }
+
+        .logout-icon {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .logout-icon:hover {
+            background-color: #5a6268;
+        }
+
+        .action-buttons-container {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        /* Header Logout Button */
+        .header-logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-logout-btn:hover {
+            background-color: #c82333;
+        }
+
+        .header-logout-btn i {
+            font-size: 16px;
+        }
+
+        /* Search Styling */
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        #search {
+            padding: 8px 8px 8px 35px;
+            width: 100%;
+            max-width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        #search:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+
+        /* Currency input styling */
+        .currency-input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .currency-input {
+            text-align: right !important;
+            font-family: 'Courier New', monospace;
+            padding: 8px 12px !important;
+            width: 100%;
+        }
+
+        /* Currency cell styling */
+        .currency-cell {
+            text-align: right !important;
+            font-family: 'Courier New', monospace;
+            padding-right: 15px !important;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        /* Override responsive table styles for currency cells */
+        @media screen and (max-width: 640px) {
+            #customers td.currency-cell {
+                text-align: right !important;
+                padding-left: 50% !important;
+            }
+            
+            #customers td.currency-cell::before {
+                text-align: left !important;
+            }
+        }
+
+        /* Checkbox Styles */
+        .type-selector {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .type-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .type-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .type-checkbox label {
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* Remove old tab styles */
+        .flex-tabs, .tab-content {
+            display: none;
+        }
+
+        /* Add these styles to your existing CSS */
+        .filters-container {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-group label {
+            font-weight: 500;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            width: 100%;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .filter-group select option {
+            padding: 8px;
+        }
+        
+        .filter-group select:focus {
+            outline: none;
+            border-color: #04AA6D;
+            box-shadow: 0 0 0 2px rgba(4, 170, 109, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .filters-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .filter-group {
+                width: 100%;
+                min-width: unset;
+            }
+        }
+
+        .process-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            justify-content: space-around;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            min-width: 140px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .summary-item i {
+            font-size: 16px;
+        }
+
+        .summary-item.lelang {
+            color: #2196F3;
+            border-left: 4px solid #2196F3;
+        }
+
+        .summary-item.kontrak {
+            color: #FF9800;
+            border-left: 4px solid #FF9800;
+        }
+
+        .summary-item.pc {
+            color: #4CAF50;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .summary-item.komisi {
+            color: #9C27B0;
+            border-left: 4px solid #9C27B0;
+        }
+
+        .summary-item.penagihan {
+            color: #F44336;
+            border-left: 4px solid #F44336;
+        }
+
+        .summary-item.selesai {
+            color: #04AA6D;
+            border-left: 4px solid #04AA6D;
+        }
+
+        @media (max-width: 768px) {
+            .process-summary {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .summary-item {
+                width: 100%;
+            }
+        }
+
+        .bekal-summary {
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 15px;
+        }
+
+        .summary-title {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .bekal-summary-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-around;
+        }
+
+        .bekal-summary .summary-item {
+            min-width: 160px;
+        }
+
+        .bekal-summary .summary-item.kapor {
+            color: #E91E63;
+            border-left: 4px solid #E91E63;
+        }
+
+        .bekal-summary .summary-item.permin {
+            color: #673AB7;
+            border-left: 4px solid #673AB7;
+        }
+
+        .bekal-summary .summary-item.satri {
+            color: #009688;
+            border-left: 4px solid #009688;
+        }
+
+        .bekal-summary .summary-item.binmat {
+            color: #FF5722;
+            border-left: 4px solid #FF5722;
+        }
+
+        .bekal-summary .summary-item.binhar {
+            color: #795548;
+            border-left: 4px solid #795548;
+        }
+
+        @media (max-width: 768px) {
+            .bekal-summary-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .bekal-summary .summary-item {
+                width: 100%;
+            }
+        }
+
+        /* Add the calendar and clock styles in the style section */
+        .datetime-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .calendar-display, .clock-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .calendar-display i, .clock-display i {
+            color: #04AA6D;
+            font-size: 18px;
+        }
+
+        .datetime-text {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .datetime-container {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+        }
+
+        /* Header Container Styles */
+        .header-container {
+            background: linear-gradient(145deg, #ffffff, #f0f2f5);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #04AA6D, #007bff, #dc3545);
+        }
+
+        .header-title-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .editable-title h1 {
+            font-size: 28px;
+            color: #2c3e50;
+            margin: 0;
+            font-weight: 600;
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.8);
+            transition: all 0.3s ease;
+        }
+
+        .editable-title h1:hover {
+            color: #04AA6D;
+            cursor: pointer;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding-top: 10px;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Button Styles */
+        .header-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0));
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .header-btn:hover::before {
+            transform: translateY(0);
+        }
+
+        .header-btn i {
+            font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+
+        .header-btn:hover i {
+            transform: scale(1.1);
+        }
+
+        .header-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Specific Button Styles */
+        .add-btn {
+            background: linear-gradient(145deg, #04AA6D, #038d5b);
+            color: white;
+        }
+
+        .add-btn:hover {
+            background: linear-gradient(145deg, #038d5b, #04AA6D);
+            transform: translateY(-2px);
+        }
+
+        .export-btn {
+            background: linear-gradient(145deg, #007bff, #0056b3);
+            color: white;
+        }
+
+        .export-btn:hover {
+            background: linear-gradient(145deg, #0056b3, #007bff);
+            transform: translateY(-2px);
+        }
+
+        .import-btn {
+            background: linear-gradient(145deg, #6c757d, #5a6268);
+            color: white;
+        }
+
+        .import-btn:hover {
+            background: linear-gradient(145deg, #5a6268, #6c757d);
+            transform: translateY(-2px);
+        }
+
+        .print-btn {
+            background: linear-gradient(145deg, #28a745, #218838);
+            color: white;
+        }
+
+        .print-btn:hover {
+            background: linear-gradient(145deg, #218838, #28a745);
+            transform: translateY(-2px);
+        }
+
+        .logout-btn {
+            background: linear-gradient(145deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .logout-btn:hover {
+            background: linear-gradient(145deg, #c82333, #dc3545);
+            transform: translateY(-2px);
+        }
+
+        /* User Info Styles */
+        .user-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            font-weight: 500;
+            color: #2c3e50;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        .user-info i {
+            color: #04AA6D;
+            font-size: 18px;
+        }
+
+        /* DateTime Container Styles */
+        .datetime-container {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .calendar-display, .clock-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            font-weight: 500;
+            color: #2c3e50;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.8);
+            transition: all 0.3s ease;
+        }
+
+        .calendar-display:hover, .clock-display:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+
+        .calendar-display i, .clock-display i {
+            color: #04AA6D;
+            font-size: 18px;
+        }
+
+        .datetime-text {
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        /* Glass Effect for Containers */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .header-container {
+                padding: 20px;
+                border-radius: 12px;
+            }
+
+            .header-title-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+
+            .header-actions {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+
+            .action-group {
+                flex-wrap: wrap;
+            }
+
+            .header-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .user-info {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .datetime-container {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .calendar-display, .clock-display {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .editable-title h1 {
+                font-size: 24px;
+            }
+        }
+
+        /* Animation Keyframes */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Apply animations */
+        .header-container {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .action-group {
+            animation: fadeIn 0.5s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .action-group:nth-child(1) { animation-delay: 0.1s; }
+        .action-group:nth-child(2) { animation-delay: 0.2s; }
+        .action-group:nth-child(3) { animation-delay: 0.3s; }
+        .action-group:nth-child(4) { animation-delay: 0.4s; }
+
+        /* Simple Flex Form Styles */
+        .flex-form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 25px;
+            background: #fff;
+            border-radius: 12px;
+        }
+
+        .type-selector {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .type-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .type-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #04AA6D;
+        }
+
+        .type-checkbox label {
+            font-size: 15px;
+            color: #333;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .flex-form-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .flex-form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .flex-form-group input,
+        .flex-form-group select {
+            width: 100%;
+            padding: 1px ;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .flex-form-group input:focus,
+        .flex-form-group select:focus {
+            border-color: #04AA6D;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(4, 170, 109, 0.1);
+        }
+
+        .flex-form-group input[type="file"] {
+            padding: 8px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+        }
+
+        .flex-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .flex-form-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .save-btn {
+            background-color: #04AA6D;
+            color: white;
+        }
+
+        .save-btn:hover {
+            background-color: #038d5b;
+        }
+
+        .cancel-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background-color: #c82333;
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            background: #fff;
+            margin: 2% auto;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .modal-content h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+
+            .flex-form-group {
+                min-width: 100%;
+            }
+
+            .flex-form-actions {
+                flex-direction: column;
+            }
+
+            .flex-form-actions button {
+                width: 100%;
+            }
+        }
+
+        /* Header and User Section Styles */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 32px 40px;
+            background: linear-gradient(120deg, rgba(4,170,109,0.85) 0%, rgba(0,123,255,0.7) 100%);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            margin-bottom: 32px;
+            border: 1.5px solid rgba(255,255,255,0.25);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .main-header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(120deg, rgba(255,255,255,0.12) 0%, rgba(4,170,109,0.08) 100%);
+            z-index: 0;
+        }
+        .title-section {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            position: relative;
+            z-index: 1;
+        }
+        .title-section .header-icon {
+            font-size: 48px;
+            color: #fff;
+            background: linear-gradient(145deg, #04AA6D, #007bff);
+            border-radius: 16px;
+            padding: 12px 16px;
+            box-shadow: 0 2px 8px rgba(4,170,109,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .editable-title h1 {
+            font-size: 2.2em;
+            color: #fff;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.10);
+            letter-spacing: 1px;
+        }
+        .datetime-container {
+            margin-top: 12px;
+        }
+        .header-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            align-items: flex-end;
+            z-index: 1;
+        }
+        .user-section {
+            background: rgba(255,255,255,0.18);
+            border-radius: 12px;
+            padding: 10px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-info .user-icon {
+            color: #04AA6D;
+            font-size: 22px;
+        }
+        .username {
+            color: #fff;
+            font-weight: 600;
+            font-size: 16px;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.10);
+        }
+        .logout-btn {
+            background: linear-gradient(145deg, #dc3545, #c82333);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            box-shadow: 0 2px 8px rgba(220,53,69,0.10);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logout-btn:hover {
+            background: linear-gradient(145deg, #c82333, #dc3545);
+            transform: translateY(-2px);
+        }
+        @media (max-width: 900px) {
+            .main-header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 24px 12px;
+                border-radius: 18px;
+            }
+            .title-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .header-actions {
+                align-items: flex-start;
+                width: 100%;
+            }
+        }
+        .dashboard-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .dashboard-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 18px 28px;
+            min-width: 140px;
+            text-align: center;
+            flex: 1;
+        }
+        .dashboard-title {
+            color: #666;
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+        .dashboard-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #04AA6D;
+        }
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+        .switch-btn {
+            background: #f8f9fa;
+            color: #04AA6D;
+            border: 2px solid #04AA6D;
+            border-radius: 6px;
+            padding: 8px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .switch-btn.active, .switch-btn:hover {
+            background: #04AA6D;
+            color: #fff;
+        }
+        /* Tambahan style agar chart lebih kecil dan tombol switch lebih kompak */
+        .chart-container {
+            max-width: 400px;
+            margin: 0 auto 24px auto;
+            background: #fff;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+        .switch-btn {
+            background: #f8f9fa;
+            color: #04AA6D;
+            border: 2px solid #04AA6D;
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 90px;
+        }
+        .switch-btn.active, .switch-btn:hover {
+            background: #04AA6D;
+            color: #fff;
+        }
+        /* Tombol input pengadaan utama */
+        .input-pengadaan-btn {
+            background: linear-gradient(145deg, #04AA6D, #038d5b);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 22px;
+            font-size: 16px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(4,170,109,0.08);
+            cursor: pointer;
+            margin-bottom: 18px;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .input-pengadaan-btn:hover {
+            background: linear-gradient(145deg, #038d5b, #04AA6D);
+            transform: translateY(-2px);
+        }
+        .main-navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(90deg, #04AA6D 0%, #007bff 100%);
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .navbar-links {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .navbar-btn {
+            background: #fff;
+            color: #04AA6D;
+            border: none;
+            border-radius: 6px;
+            padding: 7px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .navbar-btn:hover, .navbar-btn:focus {
+            background: #04AA6D;
+            color: #fff;
+        }
+        .logout-btn {
+            background: linear-gradient(145deg, #dc3545, #c82333);
+            color: #fff;
+            border: none;
+        }
+        .logout-btn:hover {
+            background: linear-gradient(145deg, #c82333, #dc3545);
+        }
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: #fff;
+        }
+        @media (max-width: 900px) {
+            .main-navbar { flex-direction: column; align-items: stretch; padding: 0.5rem 0.5rem; gap: 0.5rem; }
+            .navbar-links { justify-content: center; }
+            .navbar-user { justify-content: flex-end; }
+        }
+        @media (max-width: 600px) {
+            .main-navbar { flex-direction: column; gap: 0.5rem; padding: 0.5rem 0.2rem; }
+            .navbar-links { flex-wrap: wrap; gap: 0.3rem; }
+            .navbar-btn { font-size: 13px; padding: 6px 10px; }
+            .navbar-logo { font-size: 1rem; }
+        }
+        .main-footer {
+            width: 100%;
+            background: #f8f9fa;
+            color: #6c757d;
+            text-align: center;
+            padding: 18px 0 12px 0;
+            font-size: 15px;
+            border-top: 1px solid #e5e7eb;
+            margin-top: 40px;
+        }
+        .footer-content {
+            max-width: 900px;
+            margin: 0 auto;
+            letter-spacing: 0.5px;
+        }
+    </style>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="login" class="login-container">
+        <form class="login-form">
+            <div class="imgcontainer">
+                <img src="https://www.w3schools.com/howto/img_avatar2.png" alt="Avatar" class="avatar">
+        </div>
+
+            <div class="container">
+                <label for="username"><b>Username</b></label>
+                <input type="text" placeholder="Enter Username" id="username" required>
+
+                <label for="password"><b>Password</b></label>
+                <input type="password" placeholder="Enter Password" id="password" required>
+
+                <button type="button" onclick="login()">Login</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="mainContent" style="display:none;">
+        <!-- NAVBAR START -->
+        <nav class="main-navbar">
+            <div class="navbar-logo">
+                PengadaanApp
+            </div>
+            <div class="navbar-links">
+                <button onclick="openAddModal()" class="navbar-btn" title="Tambah Data Baru">
+                    <i class="fas fa-plus-circle"></i> <span>Tambah Data</span>
+                </button>
+                <button onclick="exportData('csv')" class="navbar-btn" title="Export CSV">
+                    <i class="fas fa-file-csv"></i> <span>CSV</span>
+                </button>
+                <input type="file" id="importFile" accept=".json,.csv" style="display: none;" onchange="handleImport(event)">
+                <button onclick="document.getElementById('importFile').click()" class="navbar-btn" title="Import Data">
+                    <i class="fas fa-file-import"></i> <span>Import</span>
+                </button>
+                <button onclick="showPrintOptions()" class="navbar-btn" title="Cetak Data">
+                    <i class="fas fa-print"></i> <span>Cetak</span>
+                </button>
+            </div>
+            <div class="navbar-user">
+                <span class="username" id="userDisplayName">Admin</span>
+                <button class="navbar-btn logout-btn" onclick="logout()" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+        <!-- NAVBAR END -->
+        <div class="main-header">
+            <div class="title-section">
+                <div class="header-icon"><i class="fas fa-table"></i></div>
+                <div class="editable-title">
+                    <h1 id="pageTitle" onclick="startEditTitle()">Tabel Pengisian Data Pengadaan</h1>
+                    <input type="text" id="titleInput" style="display: none;">
+                    <div id="titleButtons" class="edit-title-buttons">
+                        <button class="save-title-btn" onclick="saveTitle()">Simpan</button>
+                        <button class="cancel-title-btn" onclick="cancelEditTitle()">Batal</button>
+                    </div>
+                </div>
+                <div class="datetime-container">
+                    <div class="calendar-display">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="calendarDisplay" class="datetime-text"></span>
+                    </div>
+                    <div class="clock-display">
+                        <i class="fas fa-clock"></i>
+                        <span id="clockDisplay" class="datetime-text"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- SWITCH BUTTONS -->
+        <div id="dashboardSwitch" style="display:flex;gap:12px;margin-bottom:20px;">
+            <button type="button" class="switch-btn active" id="btnDashboard" onclick="showDashboardSection()">Dashboard</button>
+            <button type="button" class="switch-btn" id="btnPie" onclick="showPieChart()">Pie Chart</button>
+            <button type="button" class="switch-btn" id="btnBar" onclick="showBarChart()">Bar Chart</button>
+        </div>
+        <!-- DASHBOARD REKAPITULASI TERPISAH -->
+        <section id="dashboardSection">
+            <h2 style="margin-bottom:16px;">Dashboard Rekapitulasi</h2>
+            <div class="dashboard-container">
+                <div class="dashboard-card">
+                    <div class="dashboard-title">Total Data</div>
+                    <div class="dashboard-value" id="dashboardTotal">0</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-title">Total KP</div>
+                    <div class="dashboard-value" id="dashboardKP">0</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-title">Total KD</div>
+                    <div class="dashboard-value" id="dashboardKD">0</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-title">Total Selesai</div>
+                    <div class="dashboard-value" id="dashboardSelesai">0</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-title">Total Belum Selesai</div>
+                    <div class="dashboard-value" id="dashboardBelum">0</div>
+                </div>
+            </div>
+        </section>
+        <!-- CHART SECTION -->
+        <section id="chartSection" style="margin-bottom:32px;display:none;">
+            <h2 style="margin:24px 0 12px 0;">Visualisasi Data</h2>
+            <div class="chart-container">
+                <canvas id="dashboardChart" height="80"></canvas>
+            </div>
+        </section>
+        <!-- Tambahkan tombol input pengadaan di atas tabel -->
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+            <button class="input-pengadaan-btn" onclick="openAddModal()">
+                <i class="fas fa-plus-circle"></i> Tambah Pengadaan
+            </button>
+        </div>
+        <div class="search-print-container">
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+        <input type="text" id="search" placeholder="Cari..." onkeyup="searchTable()">
+            </div>
+        </div>
+        
+        <!-- Add Filter Controls -->
+        <div class="filters-container">
+            <div class="filter-group">
+                <label>Tipe Data:</label>
+                <select id="filterType" onchange="applyFilters()">
+                    <option value="all">Semua Tipe</option>
+                    <option value="KP">KP</option>
+                    <option value="KD">KD</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Status:</label>
+                <select id="filterStatus" onchange="applyFilters()">
+                    <option value="all">Semua Status</option>
+                    <option value="selesai">Selesai</option>
+                    <option value="belum">Belum Selesai</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Proses:</label>
+                <select id="filterProcess" onchange="applyFilters()">
+                    <option value="all">Semua Proses</option>
+                    <option value="lelang">Lelang (0-30%)</option>
+                    <option value="kontrak">Kontrak (30-40%)</option>
+                    <option value="pc">PC (40-50%)</option>
+                    <option value="komisi">Komisi (50-80%)</option>
+                    <option value="penagihan">Penagihan (80-99%)</option>
+                    <option value="selesai">Selesai (100%)</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Bekal:</label>
+                <select id="filterBekal" onchange="applyFilters()">
+                    <option value="all">Semua Bekal</option>
+                    <option value="Kapor">Kapor</option>
+                    <option value="Permin">Permin</option>
+                    <option value="Satri">Satri</option>
+                    <option value="Binmat">Binmat</option>
+                    <option value="Binhar">Binhar</option>
+                    <option value="Jansang">Jansang</option>
+                    <option value="Jasaint">Jasaint</option>
+                </select>
+            </div>
+
+           
+            </div>
+        </div>
+        
+        <div id="printArea">
+        <div class="table-container">
+            <div class="table-wrapper">
+                <table id="customers">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Pengadaan</th>
+                            <th>No dan Tgl Kep</th>
+                            <th>No dan Tgl Kontrak</th>
+                            <th>Jukmin Jusik</th>
+                            <th>Nama Perusahaan</th>
+                            <th>Bekal</th>
+                            <th>Proses</th>
+                            <th>Tipe Data</th>
+                            <th>Data PDF</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataRows">
+                        <!-- Data akan dimuat di sini -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+            
+            <!-- First add the process summary HTML above the pagination container -->
+            <div class="process-summary">
+                <div class="summary-item lelang">
+                    <i class="fas fa-gavel"></i>
+                    <span>Lelang: <span id="lelangCount">0</span></span>
+                </div>
+                <div class="summary-item kontrak">
+                    <i class="fas fa-file-contract"></i>
+                    <span>Kontrak: <span id="kontrakCount">0</span></span>
+                </div>
+                <div class="summary-item pc">
+                    <i class="fas fa-tasks"></i>
+                    <span>PC: <span id="pcCount">0</span></span>
+                </div>
+                <div class="summary-item komisi">
+                    <i class="fas fa-users"></i>
+                    <span>Komisi: <span id="komisiCount">0</span></span>
+                </div>
+                <div class="summary-item penagihan">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Penagihan: <span id="penagihanCount">0</span></span>
+                </div>
+                <div class="summary-item selesai">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Selesai: <span id="selesaiCount">0</span></span>
+                </div>
+            </div>
+
+            <!-- Add the Bekal summary HTML after the process summary -->
+            <div class="bekal-summary">
+                <h3 class="summary-title">Rekap Data Bekal Komoditi</h3>
+                <div class="bekal-summary-content">
+                    <div class="summary-item kapor">
+                        <i class="fas fa-box"></i>
+                        <span>Kapor: <span id="kaporCount">0</span></span>
+                    </div>
+                    <div class="summary-item permin">
+                        <i class="fas fa-box"></i>
+                        <span>Permin: <span id="perminCount">0</span></span>
+                    </div>
+                    <div class="summary-item satri">
+                        <i class="fas fa-box"></i>
+                        <span>Satri: <span id="satriCount">0</span></span>
+                    </div>
+                    <div class="summary-item binmat">
+                        <i class="fas fa-box"></i>
+                        <span>Binmat: <span id="binmatCount">0</span></span>
+                    </div>
+                    <div class="summary-item binhar">
+                        <i class="fas fa-box"></i>
+                        <span>Binhar: <span id="binharCount">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pagination-wrapper">
+                <div class="data-type-counters">
+                    <div class="type-counter kp-counter">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Data KP: <span id="kpCount" class="counter-number">0</span></span>
+                    </div>
+                    <div class="type-counter kd-counter">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Data KD: <span id="kdCount" class="counter-number">0</span></span>
+                    </div>
+                </div>
+                
+                <div class="pagination-container">
+                    <div class="entries-info">
+                        Menampilkan <span id="startEntry">0</span> - <span id="endEntry">0</span> dari <span id="totalEntries">0</span> data
+                    </div>
+                    
+                    <div class="items-per-page">
+                        <label>Tampilkan:</label>
+                        <select id="itemsPerPage" onchange="changeItemsPerPage()">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="30">30</option>
+                            <option value="50">50</option>
+                        </select>
+                        <span>data per halaman</span>
+                    </div>
+                    
+                    <div class="pagination-controls">
+                        <button id="prevPage" class="pagination-button" onclick="prevPage()">Previous</button>
+                        <span class="pagination-info">
+                            Halaman <span id="currentPage">1</span> dari <span id="totalPages">1</span>
+                        </span>
+                        <button id="nextPage" class="pagination-button" onclick="nextPage()">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Tambah Data</h2>
+                
+                <form id="dataForm" class="flex-form-container" onsubmit="return handleFormSubmit(event)">
+                    <div class="type-selector">
+                        <div class="type-checkbox">
+                            <input type="checkbox" id="typeKP" name="typeKP">
+                            <label for="typeKP">Data KP</label>
+                        </div>
+                        <div class="type-checkbox">
+                            <input type="checkbox" id="typeKD" name="typeKD">
+                            <label for="typeKD">Data KD</label>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="flex-form-group">
+                            <label for="namaPengadaan">Nama Pengadaan</label>
+                            <input type="text" id="namaPengadaan" name="namaPengadaan" required>
+                        </div>
+                        <div class="flex-form-group">
+                            <label for="noTglKep">No/Tgl Kep</label>
+                            <input type="text" id="noTglKep" name="noTglKep" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="flex-form-group">
+                            <label for="noTglKontrak">No/Tgl Kontrak</label>
+                            <input type="text" id="noTglKontrak" name="noTglKontrak" required>
+                        </div>
+                        <div class="flex-form-group">
+                            <label for="namaPerusahaan">Nama Perusahaan</label>
+                            <input type="text" id="namaPerusahaan" name="namaPerusahaan" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="flex-form-group">
+                            <label for="bekal">Bekal</label>
+                            <select id="bekal" name="bekal" required>
+                                <option value="">Pilih Bekal</option>
+                                <option value="Kapor">Kapor</option>
+                                <option value="Permin">Permin</option>
+                                <option value="Satri">Satri</option>
+                                <option value="Binmat">Binmat</option>
+                                <option value="Binhar">Binhar</option>
+                                <option value="Jansang">Jansang</option>
+                                <option value="Jasaint">Jasaint</option>
+                            </select>
+                        </div>
+                        <div class="flex-form-group">
+                            <label for="prosesKeterangan">Proses</label>
+                            <select id="prosesKeterangan" name="prosesKeterangan" required>
+                                <option value="">Pilih Status</option>
+                                <option value="lelang">Lelang</option>
+                                <option value="kontrak">Kontrak</option>
+                                <option value="pc">PC</option>
+                                <option value="komisi">Komisi</option>
+                                <option value="penagihan">Penagihan</option>
+                                <option value="selesai">Selesai</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="flex-form-group">
+                            <label for="uploadPDF">Upload PDF</label>
+                            <input type="file" id="uploadPDF" name="uploadPDF" accept=".pdf">
+                        </div>
+                    </div>
+
+                    <div class="flex-form-actions">
+                        <button type="button" class="cancel-btn" onclick="closeModal()">Batal</button>
+                        <button type="submit" class="save-btn">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Print Options Modal -->
+        <div id="printModal" class="print-modal">
+            <div class="print-modal-content">
+                <h3>Opsi Cetak</h3>
+                <div class="print-options">
+                    <div class="print-option-group">
+                        <h4>Pilih Data</h4>
+                        <div class="print-option-items">
+                            <label class="print-option-item">
+                                <input type="radio" name="printDataType" value="all" checked>
+                                Semua Data
+                            </label>
+                            <label class="print-option-item">
+                                <input type="radio" name="printDataType" value="KP">
+                                Data KP
+                            </label>
+                            <label class="print-option-item">
+                                <input type="radio" name="printDataType" value="KD">
+                                Data KD
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="print-option-group">
+                        <h4>Opsi Tambahan</h4>
+                        <div class="print-option-items">
+                            <label class="print-option-item">
+                                <input type="checkbox" id="printHeader" checked>
+                                Cetak Header
+                            </label>
+                            <label class="print-option-item">
+                                <input type="checkbox" id="printLandscape" checked>
+                                Orientasi Landscape
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button onclick="printTable()" class="save-btn">Cetak</button>
+                    <button onclick="closePrintModal()" class="cancel-btn">Batal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Modal -->
+    <div id="pdfModal" class="pdf-modal">
+        <span class="pdf-close" onclick="closePdfModal()">&times;</span>
+        <div class="pdf-content">
+            <iframe id="pdfViewer" class="pdf-viewer"></iframe>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>Edit Data</h2>
+            <form id="editForm" onsubmit="return handleEditSubmit(event)">
+                <div class="type-selector">
+                    <div class="type-checkbox">
+                        <input type="checkbox" id="editTypeKP" name="editDataType" value="KP">
+                        <label for="editTypeKP">Data KP</label>
+                    </div>
+                    <div class="type-checkbox">
+                        <input type="checkbox" id="editTypeKD" name="editDataType" value="KD">
+                        <label for="editTypeKD">Data KD</label>
+                    </div>
+                </div>
+
+                <div class="flex-form-container">
+                    <div class="flex-form-group">
+                        <label for="editNamaPengadaan">Nama Pengadaan</label>
+                        <input type="text" id="editNamaPengadaan" required>
+                    </div>
+                    
+                    <div class="flex-form-group">
+                        <label for="editNoTglKep">No dan Tgl Kep</label>
+                        <input type="text" id="editNoTglKep" required>
+                    </div>
+                    
+                    <div class="flex-form-group">
+                        <label for="editNoTglKontrak">No dan Tgl Kontrak</label>
+                        <input type="text" id="editNoTglKontrak" required>
+                    </div>
+                    
+                    <div class="flex-form-group">
+                        <label for="editNamaPerusahaan">Nama Perusahaan</label>
+                        <input type="text" id="editNamaPerusahaan" required>
+                    </div>
+                    
+                    <div class="flex-form-group">
+                        <label for="editBekal">Bekal</label>
+                        <select id="editBekal" required>
+                            <option value="">Pilih Bekal</option>
+                            <option value="Kapor">Kapor</option>
+                            <option value="Permin">Permin</option>
+                            <option value="Satri">Satri</option>
+                            <option value="Binmat">Binmat</option>
+                            <option value="Binhar">Binhar</option>
+                            <option value="Jansang">Jansang</option>
+                            <option value="Jasaint">Jasaint</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex-form-group">
+                        <label for="editProsesKeterangan">Proses</label>
+                        <select id="editProsesKeterangan" required onchange="updateEditJukminJusik(this.value)">
+                            <option value="">Pilih Status</option>
+                            <option value="lelang">Lelang</option>
+                            <option value="kontrak">Kontrak</option>
+                            <option value="pc">PC</option>
+                            <option value="komisi">Komisi</option>
+                            <option value="penagihan">Penagihan</option>
+                            <option value="selesai">Selesai</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex-form-group">
+                        <label for="editJukminJusik">Jukmin Jusik (%)</label>
+                        <input type="text" id="editJukminJusik" readonly>
+                    </div>
+                    
+                    
+                </div>
+                
+                <input type="hidden" id="editIndex">
+                
+                <div class="action-buttons">
+                    <button type="button" class="cancel-btn" onclick="closeEditModal()">Batal</button>
+                    <button type="submit" class="save-btn">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- HAPUS .main-header DAN ISINYA -->
+
+    <!-- Tambahkan footer di bawah semua konten utama -->
+    <footer class="main-footer">
+        <div class="footer-content">
+            &copy; 2024 PengadaanApp. All rights reserved. | Aplikasi Tabel Pengadaan
+        </div>
+    </footer>
+
+    <script>
+        let rowCount = 0; // Untuk menghitung nomor urut
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let filteredData = [];
+
+        // User roles and permissions management
+        const userRoles = {
+            kapor: { 
+                username: 'kapor', 
+                password: 'admin', 
+                allowedBekal: 'Kapor', 
+                displayName: 'User Kapor',
+                permissions: {
+                    canEdit: true,
+                    canDelete: true,
+                    canExport: false,
+                    canImport: false,
+                    canPrint: true
+                }
+            },
+            permin: { 
+                username: 'permin', 
+                password: 'admin', 
+                allowedBekal: 'Permin', 
+                displayName: 'User Permin',
+                permissions: {
+                    canEdit: true,
+                    canDelete: true,
+                    canExport: false,
+                    canImport: false,
+                    canPrint: true
+                }
+            },
+            satri: { 
+                username: 'satri', 
+                password: 'admin', 
+                allowedBekal: 'Satri', 
+                displayName: 'User Satri',
+                permissions: {
+                    canEdit: true,
+                    canDelete: true,
+                    canExport: false,
+                    canImport: false,
+                    canPrint: true
+                }
+            },
+            binmat: { 
+                username: 'binmat', 
+                password: 'admin', 
+                allowedBekal: 'Binmat', 
+                displayName: 'User Binmat',
+                permissions: {
+                    canEdit: true,
+                    canDelete: true,
+                    canExport: false,
+                    canImport: false,
+                    canPrint: true
+                }
+            },
+            binhar: { 
+                username: 'binhar', 
+                password: 'admin', 
+                allowedBekal: 'Binhar', 
+                displayName: 'User Binhar',
+                permissions: {
+                    canEdit: true,
+                    canDelete: true,
+                    canExport: false,
+                    canImport: false,
+                    canPrint: true
+                }
+            },
+            jansang: { 
+                username: 'jansang', 
+                password: 'admin', 
+                allowedBekal: 'Jansang', 
+                displayName: 'User Jansang',
+                permissions: {
+                    canEdit: true,
+                    canDelete: true,
+                    canExport: false,
+                    canImport: false,
+                    canPrint: true
+                }
+            },
+            jasaint: { 
+                username: 'jasaint', 
+                password: 'admin', 
+                allowedBekal: 'Jasaint', 
+                displayName: 'User Jasaint',
+                permissions: {
+                    canEdit: true,
+                    canDelete: true,
+                    canExport: false,
+                    canImport: false,
+                    canPrint: true
+                }
+            },
+            admin: { 
+                username: 'admin', 
+                password: 'admin', 
+                allowedBekal: 'all', 
+                displayName: 'Administrator',
+                permissions: {
+                    canEdit: true,
+                    canDelete: true,
+                    canExport: true,
+                    canImport: true,
+                    canPrint: true
+                }
+            }
+        };
+
+        // Function to update UI based on user role
+        function updateUIForRole(role) {
+            console.log('Updating UI for role:', role);
+            
+            const username = localStorage.getItem('username');
+            const user = userRoles[username];
+            
+            if (!user) {
+                console.error('No user found for username:', username);
+                logout();
+                return;
+            }
+
+            // Update page title with user info
+            const pageTitle = document.getElementById('pageTitle');
+            pageTitle.textContent = `Tabel Pengisian Data Pengadaan - ${user.displayName}`;
+
+            // Update header buttons container
+            const headerButtonsContainer = document.querySelector('.header-buttons-container');
+            if (headerButtonsContainer) {
+                headerButtonsContainer.innerHTML = `
+                    ${user.permissions.canExport ? `
+                        <button onclick="exportData('json')" class="export-btn" title="Export JSON">
+                            <i class="fas fa-file-export"></i>
+                            JSON
+                        </button>
+                        <button onclick="exportData('csv')" class="export-btn" title="Export CSV">
+                            <i class="fas fa-file-csv"></i>
+                            CSV
+                        </button>
+                    ` : ''}
+                    ${user.permissions.canImport ? `
+                        <input type="file" id="importFile" accept=".json,.csv" style="display: none;" onchange="handleImport(event)">
+                        <button onclick="document.getElementById('importFile').click()" class="import-btn" title="Import Data">
+                            <i class="fas fa-file-import"></i>
+                            Import
+                        </button>
+                    ` : ''}
+                    ${user.permissions.canPrint ? `
+                        <button onclick="showPrintOptions()" class="header-action-btn print-btn" title="Cetak Data">
+                            <i class="fas fa-print"></i>
+                            Cetak
+                        </button>
+                    ` : ''}
+                    <button onclick="openAddModal()" class="header-action-btn add-data-btn" title="Tambah Data Baru">
+                        <i class="fas fa-plus-circle"></i>
+                        Tambah Data
+                    </button>
+                    <button class="header-action-btn header-logout-btn" onclick="logout()" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                `;
+            }
+
+            // Update UI elements based on permissions
+            const filterBekal = document.getElementById('filterBekal');
+            const bekalSelect = document.getElementById('bekal');
+
+            // Handle Bekal filter and selection
+            if (role !== 'all') {
+                // Restrict Bekal filter to user's category
+                filterBekal.value = role;
+                filterBekal.disabled = true;
+
+                // Restrict Bekal selection in add form
+                if (bekalSelect) {
+                    bekalSelect.value = role;
+                    bekalSelect.disabled = true;
+                }
+            } else {
+                // Enable all controls for admin
+                filterBekal.disabled = false;
+                if (bekalSelect) bekalSelect.disabled = false;
+            }
+
+            // Update table to show only allowed actions
+            updateActionButtonsVisibility(role);
+
+            // Initialize modal event listeners
+            initializeModalHandlers();
+        }
+
+        function initializeModalHandlers() {
+            console.log('Initializing modal handlers');
+            
+            // Modal elements
+            const modal = document.getElementById('myModal');
+            const closeBtn = modal.querySelector('.close');
+            const form = document.getElementById('dataForm');
+            
+            // Close button handler
+            if (closeBtn) {
+                closeBtn.onclick = function() {
+                    closeModal();
+                };
+            }
+            
+            // Click outside modal to close
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            };
+            
+            // Form submission handler
+            if (form) {
+                form.onsubmit = function(e) {
+                    e.preventDefault();
+                    submitData();
+                    return false;
+                };
+            }
+        }
+
+        function openAddModal() {
+            console.log('Opening add modal');
+            
+            try {
+                const modal = document.getElementById('myModal');
+                if (!modal) {
+                    throw new Error('Modal element not found');
+                }
+
+                // Reset form
+                const form = document.getElementById('dataForm');
+                if (form) {
+                    form.reset();
+                    
+                    // Reset checkboxes
+                    const typeKP = document.getElementById('typeKP');
+                    const typeKD = document.getElementById('typeKD');
+                    if (typeKP) typeKP.checked = false;
+                    if (typeKD) typeKD.checked = false;
+                    
+                    // Set Bekal based on user role
+                    const userRole = localStorage.getItem('userRole');
+                    const bekalSelect = document.getElementById('bekal');
+                    if (bekalSelect) {
+                        if (userRole !== 'all') {
+                            bekalSelect.value = userRole;
+                            bekalSelect.disabled = true;
+                        } else {
+                            bekalSelect.value = '';
+                            bekalSelect.disabled = false;
+                        }
+                    }
+                    
+                    // Reset file input
+                    const fileInput = document.getElementById('uploadPDF');
+                    if (fileInput) {
+                        fileInput.value = '';
+                    }
+                    
+                    // Reset Jukmin Jusik
+                    const jukminJusik = document.getElementById('jukminJusik');
+                    if (jukminJusik) {
+                        jukminJusik.value = '';
+                    }
+                    
+                    // Reset Proses Keterangan
+                    const prosesKeterangan = document.getElementById('prosesKeterangan');
+                    if (prosesKeterangan) {
+                        prosesKeterangan.value = '';
+                    }
+                }
+
+                // Show modal
+                modal.style.display = 'block';
+                
+                // Set focus on first input
+                const firstInput = document.getElementById('namaPengadaan');
+                if (firstInput) {
+                    firstInput.focus();
+                }
+
+            } catch (error) {
+                console.error('Error in openAddModal:', error);
+                alert('Terjadi kesalahan saat membuka form: ' + error.message);
+            }
+        }
+
+        function closeModal() {
+            console.log('Closing modal');
+            const modal = document.getElementById('myModal');
+            if (modal) {
+                modal.style.display = 'none';
+                resetForm();
+            }
+        }
+
+        function resetForm() {
+            console.log('Resetting form');
+            const form = document.getElementById('dataForm');
+            const userRole = localStorage.getItem('userRole');
+            
+            if (form) {
+                // Reset form fields
+                form.reset();
+                
+                // Reset checkboxes
+                const typeKP = document.getElementById('typeKP');
+                const typeKD = document.getElementById('typeKD');
+                if (typeKP) typeKP.checked = false;
+                if (typeKD) typeKD.checked = false;
+                
+                // Handle Bekal field based on user role
+                const bekalSelect = document.getElementById('bekal');
+                if (bekalSelect) {
+                    if (userRole !== 'all') {
+                        bekalSelect.value = userRole;
+                        bekalSelect.disabled = true;
+                    } else {
+                        bekalSelect.value = '';
+                        bekalSelect.disabled = false;
+                    }
+                }
+                
+                // Reset Jukmin Jusik
+                const jukminJusik = document.getElementById('jukminJusik');
+                if (jukminJusik) {
+                    jukminJusik.value = '';
+                }
+                
+                // Reset file input
+                const fileInput = document.getElementById('uploadPDF');
+                if (fileInput) {
+                    fileInput.value = '';
+                }
+            }
+        }
+
+        // Add this to your existing DOMContentLoaded event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Document ready');
+            
+            // Initialize app
+            initializeApp();
+            
+            // Initialize modal handlers
+            initializeModalHandlers();
+            
+            // Add direct click handler for add button
+            document.querySelectorAll('.add-data-btn').forEach(button => {
+                button.onclick = openAddModal;
+            });
+        });
+
+        function updateActionButtonsVisibility(role) {
+            const username = localStorage.getItem('username');
+            const user = userRoles[username];
+            const rows = document.getElementById('dataRows').getElementsByTagName('tr');
+            
+            Array.from(rows).forEach(row => {
+                const bekalCell = row.cells[6].textContent; // Bekal column
+                const actionCell = row.cells[row.cells.length - 1];
+                const buttons = actionCell.getElementsByTagName('button');
+                
+                Array.from(buttons).forEach(button => {
+                    const isEditButton = button.classList.contains('edit-icon');
+                    const isDeleteButton = button.classList.contains('delete-icon');
+                    
+                    if (role === 'all' || bekalCell === role) {
+                        // Show/hide based on permissions
+                        if (isEditButton) {
+                            button.style.display = user.permissions.canEdit ? 'inline-block' : 'none';
+                        } else if (isDeleteButton) {
+                            button.style.display = user.permissions.canDelete ? 'inline-block' : 'none';
+                        }
+                    } else {
+                        button.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Modify login function to handle user permissions
+        function login() {
+            console.log('Login attempt');
+            
+            const username = document.getElementById('username').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                alert('Mohon isi username dan password!');
+                return;
+            }
+
+            const user = userRoles[username];
+            console.log('Found user:', user);
+
+            if (user && user.password === password) {
+                console.log('Login successful');
+                
+                // Store user session data
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('username', username);
+                localStorage.setItem('userRole', user.allowedBekal);
+                localStorage.setItem('userPermissions', JSON.stringify(user.permissions));
+
+                // Show main content
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+
+                // Update username display
+                document.getElementById('userDisplayName').textContent = user.displayName || username;
+
+                // Update UI based on role and permissions
+                updateUIForRole(user.allowedBekal);
+
+                // Load and display data
+                loadData();
+                displayData();
+                updateFilterCounts();
+
+                // Clear login form
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+
+                // Show welcome message
+                alert(`Selamat datang, ${user.displayName}!`);
+            } else {
+                console.log('Login failed');
+                alert('Username atau password salah!');
+                document.getElementById('password').value = '';
+                document.getElementById('password').focus();
+            }
+        }
+
+        // Add permission check functions
+        function hasPermission(permission) {
+            const username = localStorage.getItem('username');
+            const user = userRoles[username];
+            return user && user.permissions[permission];
+        }
+
+        function canAccessBekal(bekal) {
+            const userRole = localStorage.getItem('userRole');
+            return userRole === 'all' || userRole === bekal;
+        }
+
+        // Function to handle form submission
+        function submitData() {
+            console.log('Starting submitData function');
+            
+            try {
+                // Get form elements
+                const form = document.getElementById('dataForm');
+                if (!form) {
+                    throw new Error('Form not found');
+                }
+
+                // Get form values
+                const namaPengadaan = document.getElementById('namaPengadaan').value.trim();
+                const noTglKep = document.getElementById('noTglKep').value.trim();
+                const noTglKontrak = document.getElementById('noTglKontrak').value.trim();
+                const namaPerusahaan = document.getElementById('namaPerusahaan').value.trim();
+                const bekal = document.getElementById('bekal').value;
+                const prosesKeterangan = document.getElementById('prosesKeterangan').value;
+                const typeKP = document.getElementById('typeKP').checked;
+                const typeKD = document.getElementById('typeKD').checked;
+                const uploadPDF = document.getElementById('uploadPDF').files[0];
+
+                console.log('Collected form values:', {
+                    namaPengadaan,
+                    noTglKep,
+                    noTglKontrak,
+                    namaPerusahaan,
+                    bekal,
+                    prosesKeterangan,
+                    typeKP,
+                    typeKD
+                });
+
+                // Basic validation
+                if (!namaPengadaan || !noTglKep || !noTglKontrak || !namaPerusahaan || !bekal || !prosesKeterangan) {
+                    throw new Error('Semua field harus diisi');
+                }
+
+                if (!typeKP && !typeKD) {
+                    throw new Error('Pilih minimal satu tipe data (KP atau KD)');
+                }
+
+                if (!uploadPDF) {
+                    throw new Error('Pilih file PDF untuk di-upload');
+                }
+
+                // Get percentage based on status
+                const percentage = prosesKeterangan === 'selesai' ? '100%' : 
+                    `${statusPercentages[prosesKeterangan]?.min || 0}%`;
+
+                // Create data object
+                const newData = {
+                    namaPengadaan,
+                    noTglKep,
+                    noTglKontrak,
+                    jukminJusik: percentage,
+                    namaPerusahaan,
+                    bekal,
+                    prosesKeterangan: prosesKeterangan.charAt(0).toUpperCase() + prosesKeterangan.slice(1),
+                    type: typeKP && typeKD ? ['KP', 'KD'] : typeKP ? ['KP'] : ['KD']
+                };
+
+                console.log('Created new data object:', newData);
+
+                // Handle PDF file
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        console.log('PDF file read successfully');
+                        newData.uploadPDF = e.target.result;
+
+                        // Get existing data from localStorage
+                        let existingData = [];
+                        try {
+                            const stored = localStorage.getItem('pengadaanData');
+                            if (stored) {
+                                existingData = JSON.parse(stored);
+                                if (!Array.isArray(existingData)) {
+                                    console.log('Stored data is not an array, creating new array');
+                                    existingData = [];
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error reading from localStorage:', error);
+                            existingData = [];
+                        }
+
+                        // Add new data
+                        existingData.push(newData);
+                        console.log('Adding new data. Total items:', existingData.length);
+
+                        // Save to localStorage
+                        localStorage.setItem('pengadaanData', JSON.stringify(existingData));
+                        console.log('Data saved to localStorage successfully');
+
+                        // Show success message
+                        alert('Data berhasil disimpan!');
+
+                        // Close modal and refresh display
+                        closeModal();
+                        loadData();
+                        displayData();
+                        updateFilterCounts();
+
+                    } catch (error) {
+                        console.error('Error in reader.onload:', error);
+                        alert('Gagal menyimpan data: ' + error.message);
+                    }
+                };
+
+                reader.onerror = function() {
+                    console.error('Error reading PDF file');
+                    alert('Gagal membaca file PDF');
+                };
+
+                console.log('Starting to read PDF file');
+                reader.readAsDataURL(uploadPDF);
+
+            } catch (error) {
+                console.error('Error in submitData:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Update the form to use the new submit function
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('dataForm');
+            if (form) {
+                form.onsubmit = function(e) {
+                    e.preventDefault();
+                    submitData();
+                    return false;
+                };
+            }
+        });
+
+        function logout() {
+            if (confirm('Apakah Anda yakin ingin keluar?')) {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('username');
+                localStorage.removeItem('userRole');
+                window.location.reload();
+            }
+        }
+
+        // Initialize app when document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Document ready'); // Debug log
+            
+            // Add login form submit handler
+            const loginForm = document.querySelector('.login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    login();
+                });
+            }
+
+            // Add password keypress handler
+            const passwordInput = document.getElementById('password');
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        login();
+                    }
+                });
+            }
+
+            // Initialize the app
+            initializeApp();
+        });
+
+        function loadData() {
+            console.log('Loading data...'); // Debug log
+            try {
+                const data = JSON.parse(localStorage.getItem('pengadaanData')) || [];
+                const userRole = localStorage.getItem('userRole');
+                const username = localStorage.getItem('username');
+
+                console.log('User role:', userRole);
+                console.log('Total data:', data.length);
+
+                // Filter data based on user role
+                if (userRole !== 'all') {
+                    // Non-admin users can only see their own data
+                    filteredData = data.filter(item => item.bekal === userRole);
+                } else {
+                    // Admin can see all data
+                    filteredData = data;
+                }
+                
+                console.log('Filtered data:', filteredData.length);
+                
+                rowCount = filteredData.length;
+                currentPage = 1; // Reset to first page
+                
+                // Update counters and display
+                updateFilterCounts();
+                displayData();
+                updateDashboard();
+                updateChart();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Terjadi kesalahan saat memuat data. Silakan coba lagi.');
+            }
+        }
+
+        function displayData() {
+            console.log('Displaying data...'); // Debug log
+            try {
+                const table = document.getElementById("dataRows");
+                if (!table) {
+                    console.error('Table element not found');
+                    return;
+                }
+
+                table.innerHTML = '';
+                
+                // Calculate process counts from filtered data
+                const processCounts = {
+                    lelang: 0,
+                    kontrak: 0,
+                    pc: 0,
+                    komisi: 0,
+                    penagihan: 0,
+                    selesai: 0
+                };
+
+                // Calculate Bekal counts
+                const bekalCounts = {
+                    Kapor: 0,
+                    Permin: 0,
+                    Satri: 0,
+                    Binmat: 0,
+                    Binhar: 0
+                };
+
+                // Calculate pagination
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
+                const paginatedData = filteredData.slice(startIndex, endIndex);
+
+                console.log('Displaying data range:', startIndex, 'to', endIndex);
+                console.log('Data to display:', paginatedData.length);
+
+                // Update entries info
+                document.getElementById('startEntry').textContent = filteredData.length > 0 ? startIndex + 1 : 0;
+                document.getElementById('endEntry').textContent = endIndex;
+                document.getElementById('totalEntries').textContent = filteredData.length;
+
+                paginatedData.forEach((item, index) => {
+                    const globalIndex = startIndex + index;
+                    const row = table.insertRow();
+
+                    // Get status and percentage
+                    const status = item.prosesKeterangan.toLowerCase();
+                    const currentStatus = Object.keys(statusPercentages).find(key => 
+                        status.includes(key)
+                    ) || 'lelang';
+                    const percentage = statusPercentages[currentStatus].min + '%';
+
+                    // Update process counts
+                    if (processCounts.hasOwnProperty(currentStatus)) {
+                        processCounts[currentStatus]++;
+                    }
+
+                    // Update Bekal counts
+                    if (item.bekal && bekalCounts.hasOwnProperty(item.bekal)) {
+                        bekalCounts[item.bekal]++;
+                    }
+
+                    row.innerHTML = `
+                        <td data-label="No">${globalIndex + 1}</td>
+                        <td data-label="Nama Pengadaan">${item.namaPengadaan}</td>
+                        <td data-label="No dan Tgl Kep">${item.noTglKep}</td>
+                        <td data-label="No dan Tgl Kontrak">${item.noTglKontrak}</td>
+                        <td data-label="Jukmin Jusik" class="currency-cell">${percentage}</td>
+                        <td data-label="Nama Perusahaan">${item.namaPerusahaan}</td>
+                        <td data-label="Bekal">${item.bekal || '-'}</td>
+                        <td data-label="Proses">${item.prosesKeterangan || '-'}</td>
+                        <td data-label="Tipe Data">${Array.isArray(item.type) ? item.type.join(' & ') : (item.type || 'KP')}</td>
+                        <td data-label="Data PDF">
+                            ${item.uploadPDF ? 
+                                `<button type="button" onclick="viewPDF('${item.uploadPDF}')" class="action-icon pdf-icon" title="Lihat PDF">
+                                    <i class="fas fa-file-pdf"></i> Lihat PDF
+                                </button>` : 
+                                '<span class="no-pdf">Tidak ada PDF</span>'
+                            }
+                        </td>
+                        <td data-label="Aksi">
+                            <div class="action-buttons-container">
+                                <button type="button" onclick="editRow(${globalIndex})" class="action-icon edit-icon" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" onclick="deleteRow(${globalIndex})" class="action-icon delete-icon" title="Hapus" style="cursor: pointer;">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                });
+
+                // Update process count displays
+                document.getElementById('lelangCount').textContent = processCounts.lelang;
+                document.getElementById('kontrakCount').textContent = processCounts.kontrak;
+                document.getElementById('pcCount').textContent = processCounts.pc;
+                document.getElementById('komisiCount').textContent = processCounts.komisi;
+                document.getElementById('penagihanCount').textContent = processCounts.penagihan;
+                document.getElementById('selesaiCount').textContent = processCounts.selesai;
+
+                // Update Bekal count displays
+                document.getElementById('kaporCount').textContent = bekalCounts.Kapor;
+                document.getElementById('perminCount').textContent = bekalCounts.Permin;
+                document.getElementById('satriCount').textContent = bekalCounts.Satri;
+                document.getElementById('binmatCount').textContent = bekalCounts.Binmat;
+                document.getElementById('binharCount').textContent = bekalCounts.Binhar;
+
+                // Update pagination controls
+                updatePaginationControls();
+
+                // Update type counters
+                updateTypeCounters(filteredData);
+
+                // Update action buttons visibility based on user role
+                const userRole = localStorage.getItem('userRole');
+                updateActionButtonsVisibility(userRole);
+
+            } catch (error) {
+                console.error('Error displaying data:', error);
+                alert('Terjadi kesalahan saat menampilkan data. Silakan coba lagi.');
+            }
+        }
+
+        function updatePaginationControls() {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            document.getElementById('currentPage').textContent = currentPage;
+            document.getElementById('totalPages').textContent = totalPages;
+            
+            // Update pagination buttons
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages || totalPages === 0;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                displayData();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                displayData();
+            }
+        }
+
+        function changeItemsPerPage() {
+            itemsPerPage = parseInt(document.getElementById('itemsPerPage').value);
+            currentPage = 1; // Reset to first page
+            displayData();
+        }
+
+        function searchTable() {
+            applyFilters(); // Use the same filter function for search
+        }
+
+        function deleteRow(index) {
+            console.log('Deleting row at index:', index);
+            try {
+                const userRole = localStorage.getItem('userRole');
+                const existingData = JSON.parse(localStorage.getItem('pengadaanData')) || [];
+                
+                // Find the actual data item from the filtered data
+                const itemToDelete = filteredData[index];
+                if (!itemToDelete) {
+                    console.error('Data not found at index:', index);
+                    alert('Data tidak ditemukan');
+                    return;
+                }
+
+                // Find the index in the original data array
+                const originalIndex = existingData.findIndex(item => 
+                    item.namaPengadaan === itemToDelete.namaPengadaan &&
+                    item.noTglKep === itemToDelete.noTglKep &&
+                    item.noTglKontrak === itemToDelete.noTglKontrak &&
+                    item.bekal === itemToDelete.bekal
+                );
+
+                if (originalIndex === -1) {
+                    console.error('Data not found in original dataset');
+                    alert('Data tidak ditemukan dalam database');
+                    return;
+                }
+
+                if (userRole !== 'all' && itemToDelete.bekal !== userRole) {
+                    alert('Anda hanya dapat menghapus data untuk kategori Bekal ' + userRole);
+                    return;
+                }
+
+                if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                    console.log('Confirmed deletion');
+                    // Remove from original data
+                    existingData.splice(originalIndex, 1);
+                    localStorage.setItem('pengadaanData', JSON.stringify(existingData));
+                    
+                    // Update filtered data
+                    if (userRole !== 'all') {
+                        filteredData = existingData.filter(item => item.bekal === userRole);
+                    } else {
+                        filteredData = existingData;
+                    }
+
+                    // Update pagination
+                    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+                    if (currentPage > totalPages) {
+                        currentPage = totalPages || 1;
+                    }
+
+                    // Refresh display
+                    displayData();
+                    updateFilterCounts();
+                    alert('Data berhasil dihapus');
+                }
+            } catch (error) {
+                console.error('Error deleting row:', error);
+                alert('Terjadi kesalahan saat menghapus data');
+            }
+        }
+
+        function printTable() {
+            const printHeader = document.getElementById('printHeader').checked;
+            const printLandscape = document.getElementById('printLandscape').checked;
+            const selectedDataType = document.querySelector('input[name="printDataType"]:checked').value;
+            
+            // Get and filter data
+            const allData = JSON.parse(localStorage.getItem('pengadaanData')) || [];
+            const dataToPrint = selectedDataType === 'all' ? 
+                allData : 
+                allData.filter(item => 
+                    Array.isArray(item.type) ? 
+                    item.type.includes(selectedDataType) : 
+                    item.type === selectedDataType
+                );
+
+            // Create temporary print div
+            const printDiv = document.createElement('div');
+            printDiv.className = 'print-content';
+            
+            // Add header if needed
+            if (printHeader) {
+                const header = document.createElement('h2');
+                header.textContent = `Data Pengadaan ${selectedDataType === 'all' ? 'Semua' : selectedDataType}`;
+                printDiv.appendChild(header);
+            }
+            
+            // Create table
+            const table = document.createElement('table');
+            table.className = 'print-table';
+            
+            // Add header row
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th>No</th>
+                    <th>Nama Pengadaan</th>
+                    <th>No dan Tgl Kep</th>
+                    <th>No dan Tgl Kontrak</th>
+                    <th>Jukmin Jusik</th>
+                    <th>Nama Perusahaan</th>
+                    <th>Bekal</th>
+                    <th>Proses</th>
+                    <th>Tipe Data</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+            
+            // Add data rows
+            const tbody = document.createElement('tbody');
+            dataToPrint.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.namaPengadaan}</td>
+                    <td>${item.noTglKep}</td>
+                    <td>${item.noTglKontrak}</td>
+                    <td class="currency-cell">${item.jukminJusik}</td>
+                    <td>${item.namaPerusahaan}</td>
+                    <td>${item.bekal || '-'}</td>
+                    <td>${item.prosesKeterangan || '-'}</td>
+                    <td>${Array.isArray(item.type) ? item.type.join(' & ') : (item.type || 'KP')}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+            printDiv.appendChild(table);
+
+            // Store current page content
+            const originalContent = document.body.innerHTML;
+
+            // Add print styles
+            const styleSheet = document.createElement('style');
+            styleSheet.textContent = `
+                @media print {
+                    @page { 
+                        size: ${printLandscape ? 'landscape' : 'portrait'}; 
+                        margin: 1cm; 
+                    }
+                    body * { visibility: hidden; }
+                    .print-content, .print-content * { visibility: visible; }
+                    .print-content { position: absolute; left: 0; top: 0; width: 100%; }
+                }
+                .print-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 20px;
+                }
+                .print-table th, .print-table td {
+                    border: 1px solid #000;
+                    padding: 8px;
+                    text-align: left;
+                }
+                .print-table th {
+                    background-color: #f2f2f2 !important;
+                    -webkit-print-color-adjust: exact;
+                }
+                .currency-cell {
+                    text-align: right;
+                    font-family: 'Courier New', monospace;
+                }
+                h2 {
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+            `;
+            
+            // Apply print content
+            document.body.innerHTML = '';
+            document.body.appendChild(styleSheet);
+            document.body.appendChild(printDiv);
+            
+            // Print
+            window.print();
+            
+            // Restore original content
+            document.body.innerHTML = originalContent;
+            
+            // Reattach event listeners
+            loadData();
+            attachEventListeners();
+            
+            // Close print modal
+            closePrintModal();
+        }
+
+        function attachEventListeners() {
+            // Reattach necessary event listeners
+            document.getElementById('editForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                // ... existing edit form submit handler code ...
+            });
+            // Add other event listeners as needed
+        }
+
+        function formatCurrency(number) {
+            // Remove any non-digit characters except decimal point
+            let value = number.toString().replace(/[^\d.]/g, '');
+            
+            // Ensure only one decimal point
+            let parts = value.split('.');
+            if (parts.length > 2) {
+                parts = [parts[0], parts.slice(1).join('')];
+            }
+            
+            // Format the integer part with thousand separators
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            
+            // Combine integer and decimal parts
+            return parts.join(',');
+        }
+
+        function unformatCurrency(formattedValue) {
+            // Remove thousand separators and convert decimal separator
+            return formattedValue.replace(/\./g, '').replace(',', '.');
+        }
+
+        function handleCurrencyInput(input) {
+            let value = unformatCurrency(input.value);
+            if (value) {
+                input.value = formatCurrency(value);
+            }
+        }
+
+        function viewPDF(pdfData) {
+            const pdfModal = document.getElementById('pdfModal');
+            const pdfViewer = document.getElementById('pdfViewer');
+            
+            // Set source untuk iframe
+            pdfViewer.src = pdfData;
+            
+            // Tampilkan modal
+            pdfModal.style.display = 'block';
+        }
+
+        function closePdfModal() {
+            const pdfModal = document.getElementById('pdfModal');
+            const pdfViewer = document.getElementById('pdfViewer');
+            
+            // Clear iframe source
+            pdfViewer.src = '';
+            
+            // Sembunyikan modal
+            pdfModal.style.display = 'none';
+        }
+
+        function showPrintOptions() {
+            document.getElementById('printModal').style.display = 'block';
+        }
+
+        function closePrintModal() {
+            document.getElementById('printModal').style.display = 'none';
+        }
+
+        // Fungsi untuk mengedit judul
+        function startEditTitle() {
+            const titleElement = document.getElementById('pageTitle');
+            const titleInput = document.getElementById('titleInput');
+            const titleButtons = document.getElementById('titleButtons');
+            
+            // Simpan judul saat ini ke input
+        <!--     titleInput.value = titleElement.textContent; -->
+            
+            // Sembunyikan judul dan tampilkan input
+            titleElement.style.display = 'none';
+            titleInput.style.display = 'block';
+            titleButtons.classList.add('active');
+            
+            // Focus ke input
+            titleInput.focus();
+            
+            // Tambahkan event listener untuk tombol Enter
+            titleInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    saveTitle();
+                }
+            });
+        }
+
+        function saveTitle() {
+            const titleElement = document.getElementById('pageTitle');
+            const titleInput = document.getElementById('titleInput');
+            const titleButtons = document.getElementById('titleButtons');
+            
+            // Simpan judul baru
+            const newTitle = titleInput.value.trim();
+            if (newTitle) {
+                titleElement.textContent = newTitle;
+                // Simpan ke localStorage
+                localStorage.setItem('pageTitle', newTitle);
+            }
+            
+            // Kembalikan tampilan
+            titleElement.style.display = 'block';
+            titleInput.style.display = 'none';
+            titleButtons.classList.remove('active');
+        }
+
+        function cancelEditTitle() {
+            const titleElement = document.getElementById('pageTitle');
+            const titleInput = document.getElementById('titleInput');
+            const titleButtons = document.getElementById('titleButtons');
+            
+            // Kembalikan tampilan tanpa menyimpan perubahan
+            titleElement.style.display = 'block';
+            titleInput.style.display = 'none';
+            titleButtons.classList.remove('active');
+        }
+
+        // Load saved title when page loads
+        window.addEventListener('load', function() {
+            const savedTitle = localStorage.getItem('pageTitle');
+            if (savedTitle) {
+                document.getElementById('pageTitle').textContent = savedTitle;
+            }
+        });
+
+        // Edit row function
+        function editRow(index) {
+            try {
+                console.log('editRow called with index:', index); // Debug log
+                
+                const username = localStorage.getItem('username');
+                const userRole = localStorage.getItem('userRole');
+                const user = userRoles[username];
+
+                if (!user) {
+                    alert('Sesi anda telah berakhir. Silakan login kembali.');
+                    logout();
+                    return;
+                }
+
+                const existingData = JSON.parse(localStorage.getItem('pengadaanData')) || [];
+                const data = existingData[index];
+
+                if (!data) {
+                    alert('Data tidak ditemukan');
+                    return;
+                }
+
+                console.log('User role:', userRole);
+                console.log('Data bekal:', data.bekal);
+
+                // Check user permission
+                if (userRole !== 'all' && data.bekal !== userRole) {
+                    alert(`Anda hanya dapat mengedit data untuk kategori Bekal ${userRole}`);
+                    return;
+                }
+
+                // Show edit modal
+                const editModal = document.getElementById('editModal');
+                editModal.style.display = 'block';
+
+                // Set form values
+                document.getElementById('editNamaPengadaan').value = data.namaPengadaan || '';
+                document.getElementById('editNoTglKep').value = data.noTglKep || '';
+                document.getElementById('editNoTglKontrak').value = data.noTglKontrak || '';
+                document.getElementById('editNamaPerusahaan').value = data.namaPerusahaan || '';
+                
+                // Handle Bekal selection based on user role
+                const editBekal = document.getElementById('editBekal');
+                if (userRole !== 'all') {
+                    editBekal.value = userRole;
+                    editBekal.disabled = true;
+                } else {
+                    editBekal.value = data.bekal || '';
+                    editBekal.disabled = false;
+                }
+
+                // Set type checkboxes
+                document.getElementById('editTypeKP').checked = data.type && data.type.includes('KP');
+                document.getElementById('editTypeKD').checked = data.type && data.type.includes('KD');
+
+                // Set Proses Keterangan and update Jukmin Jusik
+                const editProsesKeterangan = document.getElementById('editProsesKeterangan');
+                const status = data.prosesKeterangan.toLowerCase();
+                const currentStatus = Object.keys(statusPercentages).find(key => 
+                    status.includes(key)
+                ) || 'lelang';
+                
+                editProsesKeterangan.value = currentStatus;
+                document.getElementById('editJukminJusik').value = data.jukminJusik || '0%';
+
+                // Store the index for the save operation
+                document.getElementById('editIndex').value = index;
+
+            } catch (error) {
+                console.error('Error in editRow:', error);
+                alert('Terjadi kesalahan saat membuka form edit. Silakan coba lagi.');
+            }
+        }
+
+        function handleEditSubmit(event) {
+            event.preventDefault();
+            console.log('handleEditSubmit called'); // Debug log
+
+            try {
+                const username = localStorage.getItem('username');
+                const userRole = localStorage.getItem('userRole');
+                const user = userRoles[username];
+
+                if (!user) {
+                    alert('Sesi anda telah berakhir. Silakan login kembali.');
+                    logout();
+                    return false;
+                }
+
+                const index = parseInt(document.getElementById('editIndex').value);
+                const existingData = JSON.parse(localStorage.getItem('pengadaanData')) || [];
+                
+                if (index < 0 || index >= existingData.length) {
+                    alert('Indeks data tidak valid');
+                    return false;
+                }
+
+                // Get form values
+                const namaPengadaan = document.getElementById('editNamaPengadaan')?.value.trim() || '';
+                const noTglKep = document.getElementById('editNoTglKep')?.value.trim() || '';
+                const noTglKontrak = document.getElementById('editNoTglKontrak')?.value.trim() || '';
+                const namaPerusahaan = document.getElementById('editNamaPerusahaan')?.value.trim() || '';
+                const bekal = userRole !== 'all' ? userRole : (document.getElementById('editBekal')?.value || '');
+                const prosesKeterangan = document.getElementById('editProsesKeterangan')?.value || '';
+                const typeKP = document.getElementById('editTypeKP')?.checked || false;
+                const typeKD = document.getElementById('editTypeKD')?.checked || false;
+                
+                // Safely get file input element
+                const fileInput = document.getElementById('editUploadPDF');
+                const uploadPDF = fileInput ? fileInput.files[0] : null;
+
+                // Validate required fields
+                if (!namaPengadaan || !noTglKep || !noTglKontrak || !namaPerusahaan || !bekal || !prosesKeterangan) {
+                    throw new Error('Semua field harus diisi');
+                }
+
+                if (!typeKP && !typeKD) {
+                    throw new Error('Pilih minimal satu tipe data (KP atau KD)');
+                }
+
+                // Get percentage based on status
+                const percentage = prosesKeterangan === 'selesai' ? '100%' : 
+                    `${statusPercentages[prosesKeterangan]?.min || 0}%`;
+
+                // Prepare updated data
+                const updatedData = {
+                    ...existingData[index], // Preserve existing data
+                    namaPengadaan,
+                    noTglKep,
+                    noTglKontrak,
+                    namaPerusahaan,
+                    bekal,
+                    prosesKeterangan: prosesKeterangan.charAt(0).toUpperCase() + prosesKeterangan.slice(1),
+                    type: typeKP && typeKD ? ['KP', 'KD'] : typeKP ? ['KP'] : ['KD'],
+                    jukminJusik: percentage
+                };
+
+                // Handle new PDF file if uploaded
+                if (uploadPDF) {
+                    console.log('New PDF file detected, processing...');
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            updatedData.uploadPDF = e.target.result;
+                            saveEditedData(index, updatedData, existingData);
+                        } catch (error) {
+                            console.error('Error processing PDF:', error);
+                            alert('Gagal memproses file PDF: ' + error.message);
+                        }
+                    };
+
+                    reader.onerror = function(error) {
+                        console.error('Error reading PDF file:', error);
+                        alert('Gagal membaca file PDF');
+                    };
+
+                    reader.readAsDataURL(uploadPDF);
+                } else {
+                    console.log('No new PDF file, keeping existing PDF');
+                    // Keep existing PDF and save
+                    saveEditedData(index, updatedData, existingData);
+                }
+
+            } catch (error) {
+                console.error('Error in handleEditSubmit:', error);
+                alert(error.message || 'Terjadi kesalahan saat memproses form');
+            }
+        }
+
+        function saveEditedData(index, updatedData, existingData) {
+            try {
+                console.log('Saving edited data for index:', index);
+                // Update the data
+                existingData[index] = updatedData;
+                
+                // Save to localStorage
+                localStorage.setItem('pengadaanData', JSON.stringify(existingData));
+                
+                // Show success message
+                alert('Data berhasil diperbarui!');
+                
+                // Close modal and refresh display
+                closeEditModal();
+                loadData();
+                displayData();
+                updateFilterCounts();
+            } catch (error) {
+                console.error('Error saving edited data:', error);
+                alert('Terjadi kesalahan saat menyimpan perubahan. Silakan coba lagi.');
+            }
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editModal');
+            if (modal) {
+                modal.style.display = "none";
+            }
+            
+            // Reset form
+            const form = document.getElementById('editForm');
+            if (form) {
+                form.reset();
+            }
+
+            // Reset file input explicitly
+            const fileInput = document.getElementById('editUploadPDF');
+            if (fileInput) {
+                fileInput.value = '';
+            }
+
+            // Reset hidden index
+            const indexInput = document.getElementById('editIndex');
+            if (indexInput) {
+                indexInput.value = '';
+            }
+        }
+
+        // Export data function
+        function exportData(format) {
+            const data = JSON.parse(localStorage.getItem('pengadaanData')) || [];
+            
+            if (data.length === 0) {
+                alert('Tidak ada data untuk diekspor!');
+                return;
+            }
+
+            let content;
+            let filename;
+            let mimeType;
+
+            if (format === 'json') {
+                content = JSON.stringify(data, null, 2);
+                filename = 'pengadaan_data.json';
+                mimeType = 'application/json';
+            } else if (format === 'csv') {
+                // Create CSV header
+                const headers = ['Nama Pengadaan', 'No dan Tgl Kep', 'No dan Tgl Kontrak', 
+                               'Jukmin Jusik', 'Nama Perusahaan', 'Bekal', 'Proses', 'Tipe Data'];
+                
+                // Convert data to CSV format
+                const csvRows = [headers.join(',')];
+                
+                data.forEach(item => {
+                    const row = [
+                        `"${item.namaPengadaan}"`,
+                        `"${item.noTglKep}"`,
+                        `"${item.noTglKontrak}"`,
+                        `"${item.jukminJusik}"`,
+                        `"${item.namaPerusahaan}"`,
+                        `"${item.bekal || '-'}"`,
+                        `"${item.prosesKeterangan || '-'}"`,
+                        `"${Array.isArray(item.type) ? item.type.join(' & ') : (item.type || 'KP')}"`
+                    ];
+                    csvRows.push(row.join(','));
+                });
+                
+                content = csvRows.join('\n');
+                filename = 'pengadaan_data.csv';
+                mimeType = 'text/csv';
+            }
+
+            // Create download link
+            const blob = new Blob([content], { type: mimeType });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Handle import function
+        function handleImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let importedData;
+                    if (file.name.endsWith('.json')) {
+                        importedData = JSON.parse(e.target.result);
+                        // Ensure type field exists for JSON imports
+                        importedData = importedData.map(item => ({
+                            ...item,
+                            type: item.type || ['KP'], // Default to KP if type is missing
+                            prosesKeterangan: item.prosesKeterangan || 'Lelang', // Default to Lelang if missing
+                            jukminJusik: item.jukminJusik || '0%' // Default to 0% if missing
+                        }));
+                    } else if (file.name.endsWith('.csv')) {
+                        importedData = parseCSV(e.target.result);
+                    } else {
+                        throw new Error('Format file tidak didukung');
+                    }
+
+                    // Validate imported data
+                    if (!Array.isArray(importedData) || importedData.length === 0) {
+                        throw new Error('Data kosong atau format tidak valid');
+                    }
+
+                    // Validate required fields
+                    const requiredFields = ['namaPengadaan', 'noTglKep', 'noTglKontrak', 'namaPerusahaan'];
+                    const invalidData = importedData.some(item => 
+                        requiredFields.some(field => !item[field])
+                    );
+
+                    if (invalidData) {
+                        throw new Error('Beberapa data tidak memiliki field yang diperlukan');
+                    }
+
+                    if (confirm(`Apakah Anda yakin ingin mengimpor ${importedData.length} data?`)) {
+                        // Format and validate data
+                        importedData = importedData.map(item => {
+                            // Ensure all required fields exist
+                            const formattedItem = {
+                                namaPengadaan: item.namaPengadaan.trim(),
+                                noTglKep: item.noTglKep.trim(),
+                                noTglKontrak: item.noTglKontrak.trim(),
+                                namaPerusahaan: item.namaPerusahaan.trim(),
+                                bekal: (item.bekal || '').trim(),
+                                prosesKeterangan: (item.prosesKeterangan || 'Lelang').trim(),
+                                type: Array.isArray(item.type) ? item.type : [item.type || 'KP'],
+                                jukminJusik: item.jukminJusik ? 
+                                    (item.jukminJusik.toString().endsWith('%') ? 
+                                        item.jukminJusik : item.jukminJusik + '%') : '0%',
+                                uploadPDF: item.uploadPDF || ''
+                            };
+
+                            // Capitalize first letter of prosesKeterangan
+                            formattedItem.prosesKeterangan = 
+                                formattedItem.prosesKeterangan.charAt(0).toUpperCase() + 
+                                formattedItem.prosesKeterangan.slice(1).toLowerCase();
+
+                            return formattedItem;
+                        });
+
+                        // Merge with existing data
+                        const existingData = JSON.parse(localStorage.getItem('pengadaanData')) || [];
+                        const newData = [...existingData, ...importedData];
+                        localStorage.setItem('pengadaanData', JSON.stringify(newData));
+                        
+                        // Reset to first page and reload data
+                        currentPage = 1;
+                        loadData();
+                        alert('Data berhasil diimpor!');
+                    }
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert('Terjadi kesalahan saat mengimpor data: ' + error.message);
+                }
+            };
+
+            reader.readAsText(file);
+            event.target.value = ''; // Reset file input
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',').map(header => 
+                header.trim().replace(/^"(.*)"$/, '$1').toLowerCase()
+            );
+            const result = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue; // Skip empty lines
+                
+                // Split by comma but respect quotes
+                const values = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
+                const cleanValues = values.map(val => val.replace(/^"(.*)"$/, '$1').trim());
+                
+                // Create a map of headers to values
+                const rowData = {};
+                headers.forEach((header, index) => {
+                    if (cleanValues[index]) {
+                        rowData[header] = cleanValues[index];
+                    }
+                });
+                
+                // Map CSV data to our data structure
+                const entry = {
+                    namaPengadaan: rowData['nama pengadaan'] || '',
+                    noTglKep: rowData['no dan tgl kep'] || '',
+                    noTglKontrak: rowData['no dan tgl kontrak'] || '',
+                    jukminJusik: rowData['jukmin jusik'] || '0%',
+                    namaPerusahaan: rowData['nama perusahaan'] || '',
+                    bekal: rowData['bekal'] || '',
+                    prosesKeterangan: rowData['proses'] || 'Lelang',
+                    type: rowData['tipe data'] ? 
+                        rowData['tipe data'].split('&').map(t => t.trim()) : ['KP'],
+                    uploadPDF: '' // Empty PDF for imported data
+                };
+                
+                // Skip rows with missing required fields
+                if (!entry.namaPengadaan || !entry.noTglKep || 
+                    !entry.noTglKontrak || !entry.namaPerusahaan) {
+                    continue;
+                }
+                
+                result.push(entry);
+            }
+
+            return result;
+        }
+
+        function updateTypeCounters(data) {
+            const kpCount = data.filter(item => 
+                Array.isArray(item.type) ? item.type.includes('KP') : item.type === 'KP'
+            ).length;
+            
+            const kdCount = data.filter(item => 
+                Array.isArray(item.type) ? item.type.includes('KD') : item.type === 'KD'
+            ).length;
+            
+            document.getElementById('kpCount').textContent = kpCount;
+            document.getElementById('kdCount').textContent = kdCount;
+        }
+
+        function applyFilters() {
+            const userRole = localStorage.getItem('userRole');
+            const typeFilter = document.getElementById('filterType').value;
+            const statusFilter = document.getElementById('filterStatus').value;
+            const processFilter = document.getElementById('filterProcess').value;
+            const bekalFilter = document.getElementById('filterBekal').value;
+            const searchText = document.getElementById('search').value.toLowerCase();
+            
+            const allData = JSON.parse(localStorage.getItem('pengadaanData')) || [];
+            
+            // First filter by user role
+            let dataToFilter = allData;
+            if (userRole !== 'all') {
+                // Non-admin users can only filter their own data
+                dataToFilter = allData.filter(item => item.bekal === userRole);
+            }
+            
+            filteredData = dataToFilter.filter(item => {
+                // Type filter
+                const typeMatch = typeFilter === 'all' || 
+                    (Array.isArray(item.type) ? 
+                        item.type.includes(typeFilter) : 
+                        item.type === typeFilter);
+                
+                // Status filter
+                const isComplete = item.prosesKeterangan.toLowerCase().includes('selesai');
+                const statusMatch = statusFilter === 'all' || 
+                    (statusFilter === 'selesai' ? isComplete : 
+                     statusFilter === 'belum' ? !isComplete : true);
+                
+                // Process filter
+                const processMatch = processFilter === 'all' || 
+                    item.prosesKeterangan.toLowerCase().includes(processFilter.toLowerCase());
+                
+                // Bekal filter - only apply for admin
+                const bekalMatch = userRole === 'all' ? 
+                    (bekalFilter === 'all' || item.bekal === bekalFilter) : 
+                    true;
+                
+                // Search text - search across all fields
+                const searchMatch = searchText === '' || [
+                    item.namaPengadaan,
+                    item.noTglKep,
+                    item.noTglKontrak,
+                    item.namaPerusahaan,
+                    item.bekal,
+                    item.prosesKeterangan,
+                    Array.isArray(item.type) ? item.type.join(' ') : item.type
+                ].some(field => 
+                    String(field).toLowerCase().includes(searchText)
+                );
+                
+                return typeMatch && statusMatch && processMatch && bekalMatch && searchMatch;
+            });
+            
+            currentPage = 1;
+            displayData();
+            updateFilterCounts();
+            updateDashboard();
+            updateChart();
+        }
+
+        // Add status percentage mapping
+        const statusPercentages = {
+            'lelang': { min: 0, max: 30 },
+            'kontrak': { min: 30, max: 40 },
+            'pc': { min: 40, max: 50 },
+            'komisi': { min: 50, max: 80 },
+            'penagihan': { min: 80, max: 99 },
+            'selesai': { min: 100, max: 100 }
+        };
+
+        // Modify the form's Proses Keterangan field to use select
+        document.addEventListener('DOMContentLoaded', function() {
+            const prosesSelect = `
+               <!--  <select id="prosesKeterangan" required onchange="updateJukminJusik(this.value)">
+                    <option value="">Pilih Status</option>
+                    <option value="lelang">Lelang</option>
+                    <option value="kontrak">Kontrak</option>
+                    <option value="pc">PC</option>
+                    <option value="komisi">Komisi</option>
+                    <option value="penagihan">Penagihan</option>
+                    <option value="selesai">Selesai</option>
+                </select> -->
+            `;
+
+            // Replace input with select in add form
+            const prosesGroup = document.querySelector('#dataForm .flex-form-group:nth-of-type(6)');
+            if (prosesGroup) {
+                prosesGroup.innerHTML = `
+                  <!--   <label for="prosesKeterangan">Proses Keterangan</label> -->
+                    ${prosesSelect}
+                `;
+            }
+
+            // Replace input with select in edit form
+            const editProsesGroup = document.querySelector('#editForm .form-group:nth-of-type(6)');
+            if (editProsesGroup) {
+                editProsesGroup.innerHTML = `
+                   <!--  <label for="editProsesKeterangan">Proses Keterangan</label>
+                    <select id="editProsesKeterangan" required onchange="updateEditJukminJusik(this.value)">
+                        <option value="">Pilih Status</option>
+                        <option value="lelang">Lelang</option>
+                        <option value="kontrak">Kontrak</option>
+                        <option value="pc">PC</option>
+                        <option value="komisi">Komisi</option>
+                        <option value="penagihan">Penagihan</option>
+                        <option value="selesai">Selesai</option>
+                    </select> -->
+                `;
+            }
+        });
+
+        // Function to update Jukmin Jusik based on status
+        function updateJukminJusik(status) {
+            const jukminInput = document.getElementById('jukminJusik');
+            if (status && statusPercentages[status]) {
+                const { min, max } = statusPercentages[status];
+                if (min === max) {
+                    jukminInput.value = min;
+            } else {
+                    jukminInput.value = min;
+                    jukminInput.min = min;
+                    jukminInput.max = max;
+                }
+            }
+        }
+
+        // Function to update Jukmin Jusik in edit form
+        function updateEditJukminJusik(status) {
+            const jukminInput = document.getElementById('editJukminJusik');
+            if (status && statusPercentages[status]) {
+                const { min, max } = statusPercentages[status];
+                if (min === max) {
+                    jukminInput.value = min;
+                } else {
+                    jukminInput.value = min;
+                    jukminInput.min = min;
+                    jukminInput.max = max;
+                }
+            }
+        }
+
+        // Modify the currency input handling for percentage
+        function handleJukminJusikInput(input) {
+            let value = input.value.replace(/[^\d]/g, '');
+            value = Math.min(Math.max(parseInt(value) || 0, parseInt(input.min) || 0), parseInt(input.max) || 100);
+            input.value = value + '%';
+        }
+
+        // Helper function to save form data
+        function saveFormData(formData) {
+                    const existingData = JSON.parse(localStorage.getItem('pengadaanData')) || [];
+            existingData.push(formData);
+                    localStorage.setItem('pengadaanData', JSON.stringify(existingData));
+            displayData();
+            rowCount++;
+            closeModal();
+            document.getElementById('dataForm').reset();
+            document.getElementById('typeKP').checked = false;
+            document.getElementById('typeKD').checked = false;
+        }
+
+        // Add function to update filter counts
+        function updateFilterCounts() {
+            const userRole = localStorage.getItem('userRole');
+            const data = JSON.parse(localStorage.getItem('pengadaanData')) || [];
+            
+            // Filter data based on user role first
+            const accessibleData = userRole === 'all' ? 
+                data : 
+                data.filter(item => item.bekal === userRole);
+            
+            // Update process counts
+            const processCounts = {
+                'lelang': 0,
+                'kontrak': 0,
+                'pc': 0,
+                'komisi': 0,
+                'penagihan': 0,
+                'selesai': 0
+            };
+            
+            accessibleData.forEach(item => {
+                const process = item.prosesKeterangan.toLowerCase();
+                Object.keys(processCounts).forEach(key => {
+                    if (process.includes(key)) {
+                        processCounts[key]++;
+                    }
+                });
+            });
+            
+            // Update process filter options with counts
+            const processFilter = document.getElementById('filterProcess');
+            Array.from(processFilter.options).forEach(option => {
+                if (option.value !== 'all') {
+                    const count = processCounts[option.value] || 0;
+                    const baseText = option.textContent.split('(')[0].trim();
+                    option.textContent = `${baseText} (${count})`;
+                }
+            });
+            
+            // Update status counts
+            const completedCount = accessibleData.filter(item => 
+                item.prosesKeterangan.toLowerCase().includes('selesai')
+            ).length;
+            const pendingCount = accessibleData.length - completedCount;
+            
+            // Update status filter options with counts
+            const statusFilter = document.getElementById('filterStatus');
+            statusFilter.options[1].textContent = `Selesai (${completedCount})`;
+            statusFilter.options[2].textContent = `Belum Selesai (${pendingCount})`;
+            
+            // Update type counts
+            const kpCount = accessibleData.filter(item => 
+                Array.isArray(item.type) ? item.type.includes('KP') : item.type === 'KP'
+            ).length;
+            const kdCount = accessibleData.filter(item => 
+                Array.isArray(item.type) ? item.type.includes('KD') : item.type === 'KD'
+            ).length;
+            
+            // Update type filter options with counts
+            const typeFilter = document.getElementById('filterType');
+            typeFilter.options[1].textContent = `KP (${kpCount})`;
+            typeFilter.options[2].textContent = `KD (${kdCount})`;
+            
+            // Update bekal counts
+            const bekalCounts = {};
+            accessibleData.forEach(item => {
+                if (item.bekal) {
+                    bekalCounts[item.bekal] = (bekalCounts[item.bekal] || 0) + 1;
+                }
+            });
+            
+            // Update bekal filter options with counts
+            const bekalFilter = document.getElementById('filterBekal');
+            Array.from(bekalFilter.options).forEach(option => {
+                if (option.value !== 'all') {
+                    const count = bekalCounts[option.value] || 0;
+                    option.textContent = `${option.value} (${count})`;
+                }
+            });
+        }
+
+        // Calendar and Clock functions
+        function updateDateTime() {
+            const now = new Date();
+            
+            // Update Calendar
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            document.getElementById('calendarDisplay').textContent = now.toLocaleDateString('id-ID', options);
+            
+            // Update Clock
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clockDisplay').textContent = `${hours}:${minutes}:${seconds} WIB`;
+        }
+
+        // Update date and time every second
+        setInterval(updateDateTime, 1000);
+        
+        // Initial update
+        updateDateTime();
+
+        // Add updateDateTime to window load event
+        window.addEventListener('load', function() {
+            initializeApp();
+            updateDateTime();
+        });
+
+        function initializeApp() {
+            console.log('Initializing app'); // Debug log
+            
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const username = localStorage.getItem('username');
+            const userRole = localStorage.getItem('userRole');
+
+            console.log('Session state:', { isLoggedIn, username, userRole });
+
+            if (isLoggedIn && username && userRole) {
+                const user = userRoles[username];
+                if (user) {
+                    console.log('Valid session found, showing main content');
+                    document.getElementById('login').style.display = 'none';
+                    document.getElementById('mainContent').style.display = 'block';
+                    updateUIForRole(userRole);
+                    loadData();
+                    displayData();
+                    
+                    // Add event listener for Tambah Data button
+                    const openModalBtn = document.getElementById('openModal');
+                    if (openModalBtn) {
+                        console.log('Adding click handler to Tambah Data button');
+                        openModalBtn.onclick = function() {
+                            const modal = document.getElementById('myModal');
+                            if (modal) {
+                                modal.style.display = "block";
+                                resetForm();
+                            }
+                        };
+                    }
+                    
+                    // Add event listener for modal close button
+                    const closeBtn = document.querySelector('#myModal .close');
+                    if (closeBtn) {
+                        closeBtn.onclick = function() {
+                            closeModal();
+                        };
+                    }
+                    
+                    // Add event listener for form submission
+                    const dataForm = document.getElementById('dataForm');
+                    if (dataForm) {
+                        dataForm.onsubmit = function(e) {
+                            e.preventDefault();
+                            submitData();
+                            return false;
+                        };
+                    }
+                    
+                    // Add click outside modal to close
+                    window.onclick = function(event) {
+                        const modal = document.getElementById('myModal');
+                        if (event.target == modal) {
+                            closeModal();
+                        }
+                    };
+                } else {
+                    console.log('Invalid session, showing login');
+                    logout();
+                }
+            } else {
+                console.log('No session found, showing login');
+                showLoginForm();
+            }
+        }
+
+        function showLoginForm() {
+            document.getElementById('login').style.display = 'flex';
+            document.getElementById('mainContent').style.display = 'none';
+            
+            // Clear any existing session
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('username');
+            localStorage.removeItem('userRole');
+        }
+
+        function showMainContent() {
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                loadData();
+        }
+
+        // Add event listener for login form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.querySelector('.login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    login();
+                });
+            }
+
+            // Add event listener for Enter key on password field
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+
+            initializeApp();
+        });
+
+        // Add event listener for form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const dataForm = document.getElementById('dataForm');
+            if (dataForm) {
+                dataForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    submitData();
+                });
+            }
+        });
+
+        // Add event listeners when document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Initializing event listeners');
+
+            // Add form submit handler
+            const dataForm = document.getElementById('dataForm');
+            if (dataForm) {
+                console.log('Found data form, adding submit handler');
+                dataForm.onsubmit = function(e) {
+                    e.preventDefault();
+                    submitData();
+                    return false;
+                };
+            }
+
+            // Add modal open handler
+            const openModalBtn = document.getElementById('openModal');
+            if (openModalBtn) {
+                console.log('Found open modal button, adding click handler');
+                openModalBtn.onclick = function() {
+                    const modal = document.getElementById('myModal');
+                    if (modal) {
+                        modal.style.display = "block";
+                        
+                        // Reset form when opening
+                        const form = document.getElementById('dataForm');
+                        if (form) form.reset();
+                        
+                        // Reset checkboxes
+                        const typeKP = document.getElementById('typeKP');
+                        const typeKD = document.getElementById('typeKD');
+                        if (typeKP) typeKP.checked = false;
+                        if (typeKD) typeKD.checked = false;
+                        
+                        // Set Bekal based on user role
+                        const userRole = localStorage.getItem('userRole');
+                        const bekalSelect = document.getElementById('bekal');
+                        if (bekalSelect) {
+                            if (userRole !== 'all') {
+                                bekalSelect.value = userRole;
+                                bekalSelect.disabled = true;
+                            } else {
+                                bekalSelect.value = '';
+                                bekalSelect.disabled = false;
+                            }
+                        }
+                    }
+                };
+            }
+
+            // Add save button handler
+            const saveBtn = document.querySelector('#dataForm .save-btn');
+            if (saveBtn) {
+                console.log('Found save button, adding click handler');
+                saveBtn.onclick = function(event) {
+                    event.preventDefault();
+                    submitData(event);
+                };
+            }
+
+            // Add modal close handler
+            const closeBtn = document.querySelector('#myModal .close');
+            if (closeBtn) {
+                console.log('Found close button, adding click handler');
+                closeBtn.onclick = function() {
+                    closeModal();
+                };
+            }
+
+            // Add window click handler for modal
+            window.onclick = function(event) {
+                const modal = document.getElementById('myModal');
+                if (event.target == modal) {
+                    closeModal();
+                }
+            };
+
+            // Add cancel button handler
+            const cancelBtn = document.querySelector('#dataForm .cancel-btn');
+            if (cancelBtn) {
+                console.log('Found cancel button, adding click handler');
+                cancelBtn.onclick = function() {
+                    closeModal();
+                };
+            }
+        });
+
+        // Form submission is handled by the onsubmit attribute in the form tag
+
+        // Handle form submission
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            console.log('Handling form submission...');
+
+            try {
+                // Get user info
+                const username = localStorage.getItem('username');
+                const userRole = localStorage.getItem('userRole');
+                const user = userRoles[username];
+
+                if (!user) {
+                    throw new Error('Sesi anda telah berakhir. Silakan login kembali.');
+                }
+
+                // Get all form elements
+                const formElements = {
+                    namaPengadaan: document.getElementById('namaPengadaan'),
+                    noTglKep: document.getElementById('noTglKep'),
+                    noTglKontrak: document.getElementById('noTglKontrak'),
+                    namaPerusahaan: document.getElementById('namaPerusahaan'),
+                    bekal: document.getElementById('bekal'),
+                    prosesKeterangan: document.getElementById('prosesKeterangan'),
+                    typeKP: document.getElementById('typeKP'),
+                    typeKD: document.getElementById('typeKD'),
+                    uploadPDF: document.getElementById('uploadPDF')
+                };
+
+                // Validate all form elements exist
+                Object.entries(formElements).forEach(([key, element]) => {
+                    if (!element) {
+                        throw new Error(`Element not found: ${key}`);
+                    }
+                });
+
+                // Get form values
+                const formData = {
+                    namaPengadaan: formElements.namaPengadaan.value.trim(),
+                    noTglKep: formElements.noTglKep.value.trim(),
+                    noTglKontrak: formElements.noTglKontrak.value.trim(),
+                    namaPerusahaan: formElements.namaPerusahaan.value.trim(),
+                    bekal: userRole !== 'all' ? userRole : formElements.bekal.value,
+                    prosesKeterangan: formElements.prosesKeterangan.value,
+                    typeKP: formElements.typeKP.checked,
+                    typeKD: formElements.typeKD.checked
+                };
+
+                console.log('Form values:', formData);
+
+                // Validate required fields
+                const requiredFields = ['namaPengadaan', 'noTglKep', 'noTglKontrak', 'namaPerusahaan', 'bekal', 'prosesKeterangan'];
+                const missingFields = requiredFields.filter(field => !formData[field]);
+                
+                if (missingFields.length > 0) {
+                    throw new Error(`Field berikut harus diisi: ${missingFields.join(', ')}`);
+                }
+
+                // Validate data type selection
+                if (!formData.typeKP && !formData.typeKD) {
+                    throw new Error('Pilih minimal satu tipe data (KP atau KD)');
+                }
+
+                // Validate PDF file
+                const pdfFile = formElements.uploadPDF.files[0];
+                if (!pdfFile) {
+                    throw new Error('Silakan pilih file PDF untuk di-upload');
+                }
+
+                // Get percentage based on status
+                const percentage = formData.prosesKeterangan === 'selesai' ? '100%' : 
+                    statusPercentages[formData.prosesKeterangan]?.min + '%' || '0%';
+
+                // Prepare final data object
+                const finalData = {
+                    ...formData,
+                    jukminJusik: percentage,
+                    prosesKeterangan: formData.prosesKeterangan.charAt(0).toUpperCase() + formData.prosesKeterangan.slice(1),
+                    type: formData.typeKP && formData.typeKD ? ['KP', 'KD'] : formData.typeKP ? ['KP'] : ['KD']
+                };
+
+                // Delete individual type flags
+                delete finalData.typeKP;
+                delete finalData.typeKD;
+
+                // Handle PDF file
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        finalData.uploadPDF = e.target.result;
+                        saveDataToStorage(finalData);
+                    } catch (error) {
+                        console.error('Error in file reader onload:', error);
+                        alert('Terjadi kesalahan saat memproses file PDF: ' + error.message);
+                    }
+                };
+
+                reader.onerror = function(error) {
+                    console.error('Error reading file:', error);
+                    alert('Terjadi kesalahan saat membaca file PDF: ' + error);
+                };
+
+                console.log('Reading PDF file...');
+                reader.readAsDataURL(pdfFile);
+
+            } catch (error) {
+                console.error('Error in handleFormSubmit:', error);
+                alert(error.message || 'Terjadi kesalahan saat memproses form');
+            }
+        }
+
+        // Add this script to update user display name
+        function updateUserDisplayName() {
+            const username = localStorage.getItem('username');
+            const user = userRoles[username];
+            if (user) {
+                document.getElementById('userDisplayName').textContent = user.displayName;
+            }
+        }
+
+        // Call this function after successful login and when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                updateUserDisplayName();
+            }
+        });
+
+        // Add scroll indicator functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const tableWrapper = document.querySelector('.table-wrapper');
+            const scrollIndicator = document.querySelector('.scroll-indicator');
+            
+            if (tableWrapper) {
+                tableWrapper.addEventListener('scroll', function() {
+                    const maxScroll = tableWrapper.scrollWidth - tableWrapper.clientWidth;
+                    const currentScroll = tableWrapper.scrollLeft;
+                    const scrollPercentage = (currentScroll / maxScroll) * 100;
+                    
+                    if (scrollIndicator) {
+                        scrollIndicator.style.setProperty('--scroll-width', `${scrollPercentage}%`);
+                    }
+                });
+            }
+
+            // Check if table needs horizontal scroll indicator
+            function checkTableScroll() {
+                if (tableWrapper) {
+                    const needsScroll = tableWrapper.scrollWidth > tableWrapper.clientWidth;
+                    if (scrollIndicator) {
+                        scrollIndicator.style.display = needsScroll ? 'block' : 'none';
+                    }
+                }
+            }
+
+            // Check on load and window resize
+            checkTableScroll();
+            window.addEventListener('resize', checkTableScroll);
+        });
+
+        function updateDashboard() {
+            const data = JSON.parse(localStorage.getItem('pengadaanData')) || [];
+            document.getElementById('dashboardTotal').textContent = data.length;
+            document.getElementById('dashboardKP').textContent = data.filter(item => Array.isArray(item.type) ? item.type.includes('KP') : item.type === 'KP').length;
+            document.getElementById('dashboardKD').textContent = data.filter(item => Array.isArray(item.type) ? item.type.includes('KD') : item.type === 'KD').length;
+            document.getElementById('dashboardSelesai').textContent = data.filter(item => (item.prosesKeterangan||'').toLowerCase().includes('selesai')).length;
+            document.getElementById('dashboardBelum').textContent = data.filter(item => !(item.prosesKeterangan||'').toLowerCase().includes('selesai')).length;
+        }
+
+        function updateChart() {
+            const data = JSON.parse(localStorage.getItem('pengadaanData')) || [];
+            const totalKP = data.filter(item => Array.isArray(item.type) ? item.type.includes('KP') : item.type === 'KP').length;
+            const totalKD = data.filter(item => Array.isArray(item.type) ? item.type.includes('KD') : item.type === 'KD').length;
+            const totalSelesai = data.filter(item => (item.prosesKeterangan||'').toLowerCase().includes('selesai')).length;
+            const totalBelum = data.filter(item => !(item.prosesKeterangan||'').toLowerCase().includes('selesai')).length;
+            if(window.dashboardChartInstance) window.dashboardChartInstance.destroy();
+            const ctx = document.getElementById('dashboardChart').getContext('2d');
+            window.dashboardChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['KP', 'KD', 'Selesai', 'Belum Selesai'],
+                    datasets: [{
+                        data: [totalKP, totalKD, totalSelesai, totalBelum],
+                        backgroundColor: ['#04AA6D','#FF9800','#2196F3','#dc3545'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: false }
+                    }
+                }
+            });
+        }
+
+        function showDashboardSection() {
+            document.getElementById('dashboardSection').style.display = '';
+            document.getElementById('chartSection').style.display = 'none';
+            setActiveSwitch('btnDashboard');
+        }
+
+        function showPieChart() {
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('chartSection').style.display = '';
+            updateChart('doughnut');
+            setActiveSwitch('btnPie');
+        }
+
+        function showBarChart() {
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('chartSection').style.display = '';
+            updateChart('bar');
+            setActiveSwitch('btnBar');
+        }
+
+        function setActiveSwitch(id) {
+            document.getElementById('btnDashboard').classList.remove('active');
+            document.getElementById('btnPie').classList.remove('active');
+            document.getElementById('btnBar').classList.remove('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        function updateChart(type = 'doughnut') {
+            const data = JSON.parse(localStorage.getItem('pengadaanData')) || [];
+            const totalKP = data.filter(item => Array.isArray(item.type) ? item.type.includes('KP') : item.type === 'KP').length;
+            const totalKD = data.filter(item => Array.isArray(item.type) ? item.type.includes('KD') : item.type === 'KD').length;
+            const totalSelesai = data.filter(item => (item.prosesKeterangan||'').toLowerCase().includes('selesai')).length;
+            const totalBelum = data.filter(item => !(item.prosesKeterangan||'').toLowerCase().includes('selesai')).length;
+            if(window.dashboardChartInstance) window.dashboardChartInstance.destroy();
+            const ctx = document.getElementById('dashboardChart').getContext('2d');
+            window.dashboardChartInstance = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: ['KP', 'KD', 'Selesai', 'Belum Selesai'],
+                    datasets: [{
+                        data: [totalKP, totalKD, totalSelesai, totalBelum],
+                        backgroundColor: ['#04AA6D','#FF9800','#2196F3','#dc3545'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: false }
+                    }
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            showDashboardSection();
+        });
+
+        // Fungsi edit judul login
+        function startEditLoginTitle() {
+            const title = document.getElementById('loginTitle');
+            const input = document.getElementById('loginTitleInput');
+            const buttons = document.getElementById('loginTitleButtons');
+            input.value = title.textContent;
+            title.style.display = 'none';
+            input.style.display = 'inline-block';
+            buttons.style.display = 'flex';
+            input.focus();
+            input.onkeypress = function(e) {
+                if (e.key === 'Enter') saveLoginTitle();
+            };
+        }
+        function saveLoginTitle() {
+            const title = document.getElementById('loginTitle');
+            const input = document.getElementById('loginTitleInput');
+            const buttons = document.getElementById('loginTitleButtons');
+            const newTitle = input.value.trim();
+            if (newTitle) {
+                title.textContent = newTitle;
+                localStorage.setItem('loginTitle', newTitle);
+            }
+            title.style.display = 'block';
+            input.style.display = 'none';
+            buttons.style.display = 'none';
+        }
+        function cancelEditLoginTitle() {
+            const title = document.getElementById('loginTitle');
+            const input = document.getElementById('loginTitleInput');
+            const buttons = document.getElementById('loginTitleButtons');
+            title.style.display = 'block';
+            input.style.display = 'none';
+            buttons.style.display = 'none';
+        }
+
+        // Load judul login custom saat halaman dimuat
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedLoginTitle = localStorage.getItem('loginTitle');
+            if (savedLoginTitle) {
+                document.getElementById('loginTitle').textContent = savedLoginTitle;
+            }
+        });
+    </script>
+</body>
+</html>
